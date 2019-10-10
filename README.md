@@ -1,2 +1,2 @@
 # Cutting Tool Mesh Unity
- tools to cut procedural meshes
+ tools to cut meshes procedurally 
