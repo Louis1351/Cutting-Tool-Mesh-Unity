@@ -66,6 +66,7 @@ public class CuttingTool : MonoBehaviour
                 points.Clear();
                 leftpoints.Clear();
                 rightpoints.Clear();
+                slp.slVectors.Clear();
 
                 center = hit.point;
                 slp.setPoints(
@@ -75,15 +76,27 @@ public class CuttingTool : MonoBehaviour
 
                 MeshFilter mf = hit.transform.GetComponent<MeshFilter>();
 
-               /* for (int i = 0; i < mf.mesh.vertexCount; i += 3)
+                for (int i = 0; i < mf.mesh.vertexCount; i += 3)
                 {
-                    Vector3 v1 = hit.transform.TransformPoint(mf.mesh.vertices[i]);
-                    Vector3 v2 = hit.transform.TransformPoint(mf.mesh.vertices[i + 1]);
-                    Vector3 v3 = hit.transform.TransformPoint(mf.mesh.vertices[i + 2]);
+                    Vector3 V1 = hit.transform.TransformPoint(mf.mesh.vertices[i]);
+                    Vector3 normalTriangle = hit.transform.TransformVector(mf.mesh.normals[i]);
+                    Vector3 intersection = Vector3.Cross(normalTriangle, slp.plane.normal);
 
-                    Vector3 normal = Vector3.Cross(v1 - v2, v1 - v3);
-                    Vector3 intersection = Vector3.Cross(normal, slp.plane.normal);
-                }*/
+                    //equation plane N1x(x - xA) + N1y(y - yA) + N1z(z - zA) = 0 | A e plane
+                    //equation plane N2x(x - xB) + N2y(y - yB) + N2z(z - zB) = 0 | B e plane
+                    //where X = 1
+                    //find intersection point
+                    ////
+                    float d1 = normalTriangle.x * V1.x + normalTriangle.y * V1.y + normalTriangle.z * V1.z;
+                    float d2 = slp.plane.normal.x * slp.a.x + slp.plane.normal.y * slp.a.y + slp.plane.normal.z * slp.a.z;
+
+                    Debug.Log(normalTriangle.x + "X + " + normalTriangle.y + "Y + " + normalTriangle.z + "Z" + " = " + d1);
+                    Debug.Log(slp.plane.normal.x + "X + " + slp.plane.normal.y + "Y + " + slp.plane.normal.z + "Z" + " = " + d2);
+
+                    
+                     slp.AddNewSlVector(V1, intersection);
+                    ////
+                }
 
                 for (int i = 0; i < mf.mesh.vertexCount; i++)
                 {
@@ -189,6 +202,7 @@ public class CuttingTool : MonoBehaviour
             Gizmos.DrawSphere(p, 0.025f);
         }
 
-        slp.drawOnGizmos();
+        if (slp != null)
+            slp.drawOnGizmos();
     }
 }
