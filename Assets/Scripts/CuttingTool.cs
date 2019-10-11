@@ -84,17 +84,31 @@ public class CuttingTool : MonoBehaviour
 
                     //equation plane N1x(x - xA) + N1y(y - yA) + N1z(z - zA) = 0 | A e plane
                     //equation plane N2x(x - xB) + N2y(y - yB) + N2z(z - zB) = 0 | B e plane
-                    //where X = 1
+                    //where Z = 1
                     //find intersection point
                     ////
                     float d1 = normalTriangle.x * V1.x + normalTriangle.y * V1.y + normalTriangle.z * V1.z;
                     float d2 = slp.plane.normal.x * slp.a.x + slp.plane.normal.y * slp.a.y + slp.plane.normal.z * slp.a.z;
 
-                    Debug.Log(normalTriangle.x + "X + " + normalTriangle.y + "Y + " + normalTriangle.z + "Z" + " = " + d1);
-                    Debug.Log(slp.plane.normal.x + "X + " + slp.plane.normal.y + "Y + " + slp.plane.normal.z + "Z" + " = " + d2);
 
-                    
-                     slp.AddNewSlVector(V1, intersection);
+                    float Z = 1.0f;
+
+                    float Y = (normalTriangle.x * (d2 - slp.plane.normal.z) + slp.plane.normal.x * (normalTriangle.z - d1))
+                        / (normalTriangle.x * slp.plane.normal.y - slp.plane.normal.x * normalTriangle.y);
+
+                    float X = (d1 - normalTriangle.y * Y - normalTriangle.z) / normalTriangle.x;
+
+                    if (!float.IsNaN(X))
+                    {
+                        Debug.Log(normalTriangle.x + "X + " + normalTriangle.y + "Y + " + normalTriangle.z + "Z" + " = " + d1);
+                        Debug.Log(slp.plane.normal.x + "X + " + slp.plane.normal.y + "Y + " + slp.plane.normal.z + "Z" + " = " + d2);
+
+                        Debug.Log(" X = " + X + " Y = " + Y + " Z = " + Z);
+
+                        slp.AddNewSlVector(new Vector3(X, Y, Z), intersection);
+                    }
+
+
                     ////
                 }
 
