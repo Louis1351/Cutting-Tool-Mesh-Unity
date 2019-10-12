@@ -75,43 +75,51 @@ public class CuttingTool : MonoBehaviour
                     Camera.main.ScreenToWorldPoint(new Vector3(lastMousePos.x, lastMousePos.y, 1.0f) + Camera.main.transform.forward));
 
                 MeshFilter mf = hit.transform.GetComponent<MeshFilter>();
+                float x1 = slp.plane.normal.x;
+                float y1 = slp.plane.normal.y;
+                float z1 = slp.plane.normal.z;
+                float d1 = -(x1 * slp.a.x + y1 * slp.a.y + z1 * slp.a.z);
 
+                //Debug.Log(x1 + "X + " + y1 + "Y + " + z1 + "Z" + " = " + d1);
+                int find = 0;
                 for (int i = 0; i < mf.mesh.vertexCount; i += 3)
                 {
+                    
                     Vector3 V1 = hit.transform.TransformPoint(mf.mesh.vertices[i]);
                     Vector3 normalTriangle = hit.transform.TransformVector(mf.mesh.normals[i]);
-                    Vector3 intersection = Vector3.Cross(normalTriangle, slp.plane.normal);
-
+                    Vector3 dir = Vector3.Cross(normalTriangle, slp.plane.normal);
+                    Debug.Log("plane normal -> " + slp.plane.normal);
+                    Debug.Log("triangle normal -> " + normalTriangle);
+                    Debug.Log("dir -> " + dir);
+                  
                     //equation plane N1x(x - xA) + N1y(y - yA) + N1z(z - zA) = 0 | A e plane
                     //equation plane N2x(x - xB) + N2y(y - yB) + N2z(z - zB) = 0 | B e plane
-                    //where Z = 1
+                    //where X = 0
                     //find intersection point
-                    ////
-                    float d1 = normalTriangle.x * V1.x + normalTriangle.y * V1.y + normalTriangle.z * V1.z;
-                    float d2 = slp.plane.normal.x * slp.a.x + slp.plane.normal.y * slp.a.y + slp.plane.normal.z * slp.a.z;
+                    ////y = (-c1z -d1) / b1
+                    ///z = ((b2/b1)*d1 -d2)/(c2 - c1*b2/b1)
+                   
+                    float x2 = normalTriangle.x;
+                    float y2 = normalTriangle.y;
+                    float z2 = normalTriangle.z;
+                    float d2 = -(x2 * V1.x + y2 * V1.y + z2 * V1.z);
 
 
-                    float Z = 1.0f;
-
-                    float Y = (normalTriangle.x * (d2 - slp.plane.normal.z) + slp.plane.normal.x * (normalTriangle.z - d1))
-                        / (normalTriangle.x * slp.plane.normal.y - slp.plane.normal.x * normalTriangle.y);
-
-                    float X = (d1 - normalTriangle.y * Y - normalTriangle.z) / normalTriangle.x;
-
-                    if (!float.IsNaN(X))
+                    if (dir.x != 0.0f || dir.y != 0.0f || dir.z != 0.0f)//planes aren't coplanar
                     {
-                        Debug.Log(normalTriangle.x + "X + " + normalTriangle.y + "Y + " + normalTriangle.z + "Z" + " = " + d1);
-                        Debug.Log(slp.plane.normal.x + "X + " + slp.plane.normal.y + "Y + " + slp.plane.normal.z + "Z" + " = " + d2);
+                        float dot = Vector3.Dot(dir, dir);
+                        Vector3 u1 = d2 * slp.plane.normal;
+                        Vector3 u2 = -d1 * normalTriangle;
+                        Vector3 p = Vector3.Cross((u1 + u2),dir) / dot;
+                       
+                        //Debug.Log(x2 + "X + " + y2 + "Y + " + z2 + "Z" + " = " + d2);
 
-                        Debug.Log(" X = " + X + " Y = " + Y + " Z = " + Z);
-
-                        slp.AddNewSlVector(new Vector3(X, Y, Z), intersection);
+                        Debug.Log("p " + p);
+                        slp.AddNewSlVector(p, dir);
+                        find++;
                     }
-
-
-                    ////
                 }
-
+                Debug.Log("find " + find);
                 for (int i = 0; i < mf.mesh.vertexCount; i++)
                 {
 

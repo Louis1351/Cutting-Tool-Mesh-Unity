@@ -57,8 +57,10 @@ public class SlicePlane
         Gizmos.color = Color.green;
         foreach (SliceVector slv in slVectors)
         {
+            Gizmos.DrawSphere(slv.point, 0.05f);
             Gizmos.DrawLine(slv.point, slv.point + slv.direction);
         }
+        Gizmos.DrawLine(a, a + plane.normal);
     }
 
     public void AddNewSlVector(Vector3 point, Vector3 direction)
