@@ -82,41 +82,51 @@ public class CuttingTool : MonoBehaviour
 
                 //Debug.Log(x1 + "X + " + y1 + "Y + " + z1 + "Z" + " = " + d1);
                 int find = 0;
-                for (int i = 0; i < mf.mesh.vertexCount; i += 3)
+                Vector3 finalPoint;
+                for (int i = 0; i < mf.mesh.triangles.Length; i += 3)
                 {
-                    
-                    Vector3 V1 = hit.transform.TransformPoint(mf.mesh.vertices[i]);
-                    Vector3 normalTriangle = hit.transform.TransformVector(mf.mesh.normals[i]);
+                    Vector3 normalTriangle = hit.transform.TransformVector(mf.mesh.normals[mf.mesh.triangles[i]]);
                     Vector3 dir = Vector3.Cross(normalTriangle, slp.plane.normal);
-                    Debug.Log("plane normal -> " + slp.plane.normal);
+
+                    /*Debug.Log("plane normal -> " + slp.plane.normal);
                     Debug.Log("triangle normal -> " + normalTriangle);
-                    Debug.Log("dir -> " + dir);
-                  
-                    //equation plane N1x(x - xA) + N1y(y - yA) + N1z(z - zA) = 0 | A e plane
-                    //equation plane N2x(x - xB) + N2y(y - yB) + N2z(z - zB) = 0 | B e plane
-                    //where X = 0
-                    //find intersection point
-                    ////y = (-c1z -d1) / b1
-                    ///z = ((b2/b1)*d1 -d2)/(c2 - c1*b2/b1)
-                   
+                    Debug.Log("dir -> " + dir);*/
+
+                    Vector3 V1 = hit.transform.TransformPoint(mf.mesh.vertices[mf.mesh.triangles[i]]);
+                    Vector3 V2 = hit.transform.TransformPoint(mf.mesh.vertices[mf.mesh.triangles[i + 1]]);
+                    Vector3 V3 = hit.transform.TransformPoint(mf.mesh.vertices[mf.mesh.triangles[i + 2]]);
+
+                    Vector3 V1V2 = V2 - V1;
+                    Vector3 V2V3 = V3 - V2;
+
                     float x2 = normalTriangle.x;
                     float y2 = normalTriangle.y;
                     float z2 = normalTriangle.z;
                     float d2 = -(x2 * V1.x + y2 * V1.y + z2 * V1.z);
 
+                    //equation plane N1x(x - xA) + N1y(y - yA) + N1z(z - zA) = 0 | A e plane
+                    //equation plane N2x(x - xB) + N2y(y - yB) + N2z(z - zB) = 0 | B e plane
+                    //where X = 0
+                    //find intersection point p with two planes
 
-                    if (dir.x != 0.0f || dir.y != 0.0f || dir.z != 0.0f)//planes aren't coplanar
+                    float z = ((y2 / y1) * d1 - d2) / (z2 - z1 * y2 / y1);
+                    float y = (-z1 * z - d1) / y1;
+
+                    Vector3 p = new Vector3(0.0f, y, z);
+
+                    if (!float.IsInfinity(p.x) && !float.IsInfinity(p.y) && !float.IsInfinity(p.z))
                     {
-                        float dot = Vector3.Dot(dir, dir);
-                        Vector3 u1 = d2 * slp.plane.normal;
-                        Vector3 u2 = -d1 * normalTriangle;
-                        Vector3 p = Vector3.Cross((u1 + u2),dir) / dot;
-                       
-                        //Debug.Log(x2 + "X + " + y2 + "Y + " + z2 + "Z" + " = " + d2);
+                        if (LineLineIntersection(out finalPoint, V2, V1V2, p, dir))
+                        {
+                            Debug.Log(finalPoint);
+                            slp.AddNewSlVector(finalPoint, Vector3.zero);
+                        }
 
-                        Debug.Log("p " + p);
-                        slp.AddNewSlVector(p, dir);
-                        find++;
+                        if (LineLineIntersection(out finalPoint, V2, V2V3, p, dir))
+                        {
+                            Debug.Log(finalPoint);
+                            slp.AddNewSlVector(finalPoint, Vector3.zero);
+                        }
                     }
                 }
                 Debug.Log("find " + find);
@@ -134,10 +144,6 @@ public class CuttingTool : MonoBehaviour
                         if (!rightpoints.Contains(vertex))
                             rightpoints.Add(vertex);
                     }
-
-                    Vector3 closestPt = slp.plane.ClosestPointOnPlane(vertex);
-                    if (!points.Contains(closestPt))
-                        points.Add(closestPt);
                 }
 
                 #region todelete
@@ -226,5 +232,28 @@ public class CuttingTool : MonoBehaviour
 
         if (slp != null)
             slp.drawOnGizmos();
+    }
+
+    public static bool LineLineIntersection(out Vector3 intersection, Vector3 linePoint1, Vector3 lineVec1, Vector3 linePoint2, Vector3 lineVec2)
+    {
+
+        Vector3 lineVec3 = linePoint2 - linePoint1;
+        Vector3 crossVec1and2 = Vector3.Cross(lineVec1, lineVec2);
+        Vector3 crossVec3and2 = Vector3.Cross(lineVec3, lineVec2);
+
+        float planarFactor = Vector3.Dot(lineVec3, crossVec1and2);
+
+        //is coplanar, and not parrallel
+        if (Mathf.Abs(planarFactor) < 0.0001f && crossVec1and2.sqrMagnitude > 0.0001f)
+        {
+            float s = Vector3.Dot(crossVec3and2, crossVec1and2) / crossVec1and2.sqrMagnitude;
+            intersection = linePoint1 + (lineVec1 * s);
+            return true;
+        }
+        else
+        {
+            intersection = Vector3.zero;
+            return false;
+        }
     }
 }

@@ -53,6 +53,7 @@ public class SlicePlane
         Gizmos.DrawSphere(a, 0.05f);
         Gizmos.DrawSphere(b, 0.05f);
         Gizmos.DrawSphere(c, 0.05f);
+        Gizmos.DrawLine(a, a + plane.normal);
 
         Gizmos.color = Color.green;
         foreach (SliceVector slv in slVectors)
@@ -60,14 +61,14 @@ public class SlicePlane
             Gizmos.DrawSphere(slv.point, 0.05f);
             Gizmos.DrawLine(slv.point, slv.point + slv.direction);
         }
-        Gizmos.DrawLine(a, a + plane.normal);
+        
     }
 
     public void AddNewSlVector(Vector3 point, Vector3 direction)
     {
         SliceVector slv;
         slv.point = point;
-        slv.direction = direction;
+        slv.direction = direction*5.0f;
         slVectors.Add(slv);
     }
 }
