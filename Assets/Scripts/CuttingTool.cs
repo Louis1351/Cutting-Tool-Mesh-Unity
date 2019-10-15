@@ -106,7 +106,7 @@ public class CuttingTool : MonoBehaviour
 
                     //equation plane N1x(x - xA) + N1y(y - yA) + N1z(z - zA) = 0 | A e plane
                     //equation plane N2x(x - xB) + N2y(y - yB) + N2z(z - zB) = 0 | B e plane
-                    //where X = 0
+                    //where X = 0.0f
                     //find intersection point p with two planes
 
                     float z = ((y2 / y1) * d1 - d2) / (z2 - z1 * y2 / y1);
