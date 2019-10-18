@@ -102,14 +102,21 @@ public class CuttingTool : MonoBehaviour
                     //equation plane N2x(x - xB) + N2y(y - yB) + N2z(z - zB) + d2 = 0 | B e plane
                     //where X = 0.0f
                     //find intersection point p with two planes
-                   
+                    float x = 0.0f;
                     float z = ((y2 / y1) * d1 - d2) / (z2 - z1 * y2 / y1);
                     float y = (-z1 * z - d1) / y1;
-                    Vector3 pointOnSliceVec = new Vector3(0.0f, y, z);
+
+                    if (float.IsInfinity(z2) || float.IsInfinity(y2))
+                    {
+                        //where X = 0.0f
+                        x = ((y2 / y1) * d1 - d2) / (x2 - x1 * y2 / y1);
+                        y = (-x1 * x - d1) / y1;
+
+                    }
+
+                    Vector3 pointOnSliceVec = new Vector3(x, y, z);
                     Debug.Log(pointOnSliceVec);
-                    /*float y = (z2 * (-d1 - x1) + z1 * (x2 + d2)) / (y1 * z2 - z1 * y1);
-                    float z = (-d2 - x2 - y2 * y) / z2;
-                    Vector3 pointOnSliceVec = new Vector3(1.0f, y, z);*/
+
                     #region plane normal
                     float x12 = slp.plane.normal.y;
                     float y12 = -slp.plane.normal.x;
@@ -146,23 +153,6 @@ public class CuttingTool : MonoBehaviour
                         slp.AddNewSlVector(finalPoint, Vector3.zero);
                     }
 
-                    if (LineLineIntersection(out finalPoint, V2, V1, pointOnSliceVec2, sliceDir))
-                    {
-                        //Debug.Log(finalPoint);
-                        slp.AddNewSlVector(finalPoint, Vector3.zero);
-                    }
-
-                    if (LineLineIntersection(out finalPoint, V2, V3, pointOnSliceVec2, sliceDir))
-                    {
-                        //Debug.Log(finalPoint);
-                        slp.AddNewSlVector(finalPoint, Vector3.zero);
-                    }
-
-                    if (LineLineIntersection(out finalPoint, V1, V3, pointOnSliceVec2, sliceDir))
-                    {
-                        //Debug.Log(finalPoint);
-                        slp.AddNewSlVector(finalPoint, Vector3.zero);
-                    }
                 }
 
                 for (int i = 0; i < mf.mesh.vertexCount; i++)
