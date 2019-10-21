@@ -59,7 +59,7 @@ public class SlicePlane
         foreach (SliceVector slv in slVectors)
         {
             Gizmos.DrawSphere(slv.point, 0.05f);
-            Gizmos.DrawLine(slv.point, slv.point + slv.direction);
+            Gizmos.DrawLine(slv.point, slv.point + slv.direction.normalized);
         }
         
     }
