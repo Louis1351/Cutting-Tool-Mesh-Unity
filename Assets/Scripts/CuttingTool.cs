@@ -82,9 +82,7 @@ public class CuttingTool : MonoBehaviour
                 Vector3 finalPoint;
                 for (int i = 0; i < mf.mesh.triangles.Length; i += 3)
                 {
-
-                    Vector3 normalTriangle = hit.transform.TransformDirection(mf.mesh.normals[mf.mesh.triangles[i]]);
-                    Vector3 sliceDir = Vector3.Cross(normalTriangle, slp.plane.normal);
+                    Vector3 normalTriangle = hit.transform.TransformVector(mf.mesh.normals[mf.mesh.triangles[i]]);
 
                     Vector3 V1 = hit.transform.TransformPoint(mf.mesh.vertices[mf.mesh.triangles[i]]);
                     Vector3 V2 = hit.transform.TransformPoint(mf.mesh.vertices[mf.mesh.triangles[i + 1]]);
@@ -93,6 +91,8 @@ public class CuttingTool : MonoBehaviour
                     Vector3 V2V1 = V1 - V2;
                     Vector3 V2V3 = V3 - V2;
                     Vector3 V1V3 = V3 - V1;
+
+                    Vector3 sliceDir = Vector3.Cross(slp.plane.normal, normalTriangle);
 
                     float x2 = normalTriangle.x;
                     float y2 = normalTriangle.y;
@@ -108,32 +108,52 @@ public class CuttingTool : MonoBehaviour
                     //Debug.Log("(z2 - z1 * y2 / y1) " + (z2 - z1 * y2 / y1));
 
                     float x = 0.0f;
-                    float z = ((y2 / y1) * d1 - d2) / (z2 - z1 * y2 / y1);
-                    float y = (-z1 * z - d1) / y1;
+                    float y = 0.0f;
+                    float z = 0.0f;
+
+                    if (sliceDir.x != 0.0f)
+                    {
+                        x = 0.0f;
+                        z = ((y2 / y1) * d1 - d2) / (z2 - z1 * y2 / y1);
+                        y = (-z1 * z - d1) / y1;
+                    }
+                    else if (sliceDir.y != 0.0f)
+                    {
+                        y = 0.0f;
+                        z = ((x2 / x1) * d1 - d2) / (z2 - z1 * x2 / x1);
+                        x = (-z1 * z - d1) / x1;
+                    }
+                    else if (sliceDir.z != 0.0f)
+                    {
+                        z = 0.0f;
+                        y = ((x2 / x1) * d1 - d2) / (y2 - y1 * x2 / x1);
+                        x = (-y1 * y - d1) / x1;
+                    }
 
                     Vector3 pointOnSliceVec = new Vector3(x, y, z);
 
                     //Debug.Log("x1 " + x1 + " y1 " + y1 + " z1 " + z1 + " d1 " + d1);
                     // Debug.Log("x2 " + x2 + " y2 " + y2 + " z2 " + z2 + " d2 " + d2);
 
-                    // Debug.Log("pointOnSliceVec " + pointOnSliceVec);
-
-
+                    bool drawSlice = false;
                     if (IntersectionVectorToVector(out finalPoint, V2, V1, pointOnSliceVec, sliceDir))
                     {
-                        slp.AddNewSlVector(finalPoint, Vector3.zero);
-                        //    Debug.Log("f1 " + finalPoint);
+                        drawSlice = true;
+                        slp.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta);
                     }
                     if (IntersectionVectorToVector(out finalPoint, V3, V2, pointOnSliceVec, sliceDir))
                     {
-                        slp.AddNewSlVector(finalPoint, Vector3.zero);
-                        //    Debug.Log("f2 " + finalPoint);
+                        drawSlice = true;
+                        slp.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta);
                     }
                     if (IntersectionVectorToVector(out finalPoint, V1, V3, pointOnSliceVec, sliceDir))
                     {
-                        slp.AddNewSlVector(finalPoint, Vector3.zero);
-                        //   Debug.Log("f3 " + finalPoint);
+                        drawSlice = true;
+                        slp.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta);
                     }
+
+                    if(drawSlice)
+                        slp.AddNewSlVector(pointOnSliceVec, sliceDir, Color.green);
                 }
 
                 for (int i = 0; i < mf.mesh.vertexCount; i++)
@@ -210,9 +230,28 @@ public class CuttingTool : MonoBehaviour
 
     public bool IntersectionVectorToVector(out Vector3 ptIntersection, Vector3 A1, Vector3 A2, Vector3 B1, Vector3 vB)
     {
+        float u = 0.0f;
         Vector3 vA = A2 - A1;
 
-        float u = (vA.x * (B1.y - A1.y) + vA.y * (A1.x - B1.x)) / (vA.y * vB.x - vA.x * vB.y);
+        if (vB.y == 0.0f)
+        {
+            //y = 0
+            u = (vA.x * (B1.z - A1.z) + vA.z * (A1.x - B1.x)) / (vA.z * vB.x - vA.x * vB.z);
+        }
+        else if (vB.x == 0.0f)
+        {
+            //x = 0
+            u = (vA.y * (B1.z - A1.z) + vA.z * (A1.y - B1.y)) / (vA.z * vB.y - vA.y * vB.z);
+        }
+        else if (vB.z == 0.0f)
+        {
+            //z = 0
+            u = (vA.x * (B1.y - A1.y) + vA.y * (A1.x - B1.x)) / (vA.y * vB.x - vA.x * vB.y);
+        }
+        else
+        {
+            u = (vA.x * (B1.y - A1.y) + vA.y * (A1.x - B1.x)) / (vA.y * vB.x - vA.x * vB.y);
+        }
 
         ptIntersection.x = B1.x + u * vB.x;
         ptIntersection.y = B1.y + u * vB.y;
@@ -238,14 +277,4 @@ public class CuttingTool : MonoBehaviour
         u*(vA.y*vB.x -vA.x*vB.y) = ""
         u = (vA.x*(pB.y - pA.y) + vA.y (pA.x - pB.x))/(vA.y*vB.x - vA.x*vB.y)*/
     }
-
-    /*public bool IntersectionPlaneToVector(out Vector3 ptIntersection, out Vector3 direction, Plane P1, Plane P2)
-    {
-        direction = Vector3.Cross(P1.normal, P2.normal);
-
-        float x2 = normalTriangle.x;
-        float y2 = normalTriangle.y;
-        float z2 = normalTriangle.z;
-        float d2 = -(x2 * V1.x + y2 * V1.y + z2 * V1.z);
-    }*/
 }
