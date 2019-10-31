@@ -75,7 +75,6 @@ public class SlicePlane
         }
 
     }
-
     public void AddNewSlVector(Vector3 point, Vector3 direction, Color color)
     {
         SliceVector slv;
