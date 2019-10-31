@@ -9,13 +9,11 @@ public class CuttingTool : MonoBehaviour
     [SerializeField]
     Material mat;
 
-    private SlicePlane slp;
+    private SlicePlane slp1;
+    private SlicePlane slp2;
     private Vector3 lastMousePos;
 
     private Vector3 center;
-    private Vector3 u;
-    private Vector3 v;
-    private Vector3 n;
 
     List<Vector3> points;
     List<Vector3> leftpoints;
@@ -28,7 +26,9 @@ public class CuttingTool : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        slp = new SlicePlane();
+        slp1 = new SlicePlane();
+        slp2 = new SlicePlane();
+
         points = new List<Vector3>();
         leftpoints = new List<Vector3>();
         rightpoints = new List<Vector3>();
@@ -65,19 +65,15 @@ public class CuttingTool : MonoBehaviour
                 points.Clear();
                 leftpoints.Clear();
                 rightpoints.Clear();
-                slp.slVectors.Clear();
+                slp1.slVectors.Clear();
 
                 center = hit.point;
-                slp.setPoints(
+                slp1.setPoints(
                     Camera.main.ScreenToWorldPoint(new Vector3(lastMousePos.x, lastMousePos.y, 1.0f)),
                     Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 1.0f)),
                     Camera.main.ScreenToWorldPoint(new Vector3(lastMousePos.x, lastMousePos.y, 1.0f) + Camera.main.transform.forward));
 
                 MeshFilter mf = hit.transform.GetComponent<MeshFilter>();
-                float x1 = slp.plane.normal.x;
-                float y1 = slp.plane.normal.y;
-                float z1 = slp.plane.normal.z;
-                float d1 = -(x1 * slp.a.x + y1 * slp.a.y + z1 * slp.a.z);
 
                 Vector3 finalPoint;
                 for (int i = 0; i < mf.mesh.triangles.Length; i += 3)
@@ -92,75 +88,38 @@ public class CuttingTool : MonoBehaviour
                     Vector3 V2V3 = V3 - V2;
                     Vector3 V1V3 = V3 - V1;
 
-                    Vector3 sliceDir = Vector3.Cross(slp.plane.normal, normalTriangle);
+                    slp2.setPoints(V1, V2, V3);
 
-                    float x2 = normalTriangle.x;
-                    float y2 = normalTriangle.y;
-                    float z2 = normalTriangle.z;
-                    float d2 = -(x2 * V1.x + y2 * V1.y + z2 * V1.z);
-
-                    //equation plane N1x(x - xA) + N1y(y - yA) + N1z(z - zA) + d1 = 0 | A e plane
-                    //equation plane N2x(x - xB) + N2y(y - yB) + N2z(z - zB) + d2 = 0 | B e plane
-                    //where X = 0.0f
-                    //find intersection point p with two planes
-
-                    //Debug.Log("(y2 / y1) * d1 - d2) " + ((y2 / y1) * d1 - d2));
-                    //Debug.Log("(z2 - z1 * y2 / y1) " + (z2 - z1 * y2 / y1));
-
-                    float x = 0.0f;
-                    float y = 0.0f;
-                    float z = 0.0f;
-
-                    if (sliceDir.x != 0.0f)
-                    {
-                        x = 0.0f;
-                        z = ((y2 / y1) * d1 - d2) / (z2 - z1 * y2 / y1);
-                        y = (-z1 * z - d1) / y1;
-                    }
-                    else if (sliceDir.y != 0.0f)
-                    {
-                        y = 0.0f;
-                        z = ((x2 / x1) * d1 - d2) / (z2 - z1 * x2 / x1);
-                        x = (-z1 * z - d1) / x1;
-                    }
-                    else if (sliceDir.z != 0.0f)
-                    {
-                        z = 0.0f;
-                        y = ((x2 / x1) * d1 - d2) / (y2 - y1 * x2 / x1);
-                        x = (-y1 * y - d1) / x1;
-                    }
-
-                    Vector3 pointOnSliceVec = new Vector3(x, y, z);
-
-                    //Debug.Log("x1 " + x1 + " y1 " + y1 + " z1 " + z1 + " d1 " + d1);
-                    // Debug.Log("x2 " + x2 + " y2 " + y2 + " z2 " + z2 + " d2 " + d2);
-
+                    Vector3 pointOnSliceVec = Vector3.zero;
+                    Vector3 sliceDir = Vector3.zero;
+                    IntersectionPlanToPlan(ref pointOnSliceVec, ref sliceDir, slp1, slp2);
+                  
                     bool drawSlice = false;
                     if (IntersectionVectorToVector(out finalPoint, V2, V1, pointOnSliceVec, sliceDir))
                     {
                         drawSlice = true;
-                        slp.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta);
+                        slp1.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta);
                     }
                     if (IntersectionVectorToVector(out finalPoint, V3, V2, pointOnSliceVec, sliceDir))
                     {
                         drawSlice = true;
-                        slp.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta);
+                        slp1.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta);
                     }
                     if (IntersectionVectorToVector(out finalPoint, V1, V3, pointOnSliceVec, sliceDir))
                     {
                         drawSlice = true;
-                        slp.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta);
+                        slp1.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta);
                     }
 
-                    if (true)
-                        slp.AddNewSlVector(pointOnSliceVec, sliceDir, Color.green);
+                    if (drawSlice)
+                        slp1.AddNewSlVector(pointOnSliceVec, sliceDir, Color.green);
                 }
 
                 for (int i = 0; i < mf.mesh.vertexCount; i++)
                 {
 
                     Vector3 vertex = hit.transform.TransformPoint(mf.mesh.vertices[i]);
-                    if (slp.plane.GetSide(vertex))
+                    if (slp1.plane.GetSide(vertex))
                     {
                         if (!leftpoints.Contains(vertex))
                             leftpoints.Add(vertex);
@@ -171,6 +130,9 @@ public class CuttingTool : MonoBehaviour
                             rightpoints.Add(vertex);
                     }
                 }
+
+                SlicedMeshLibrary.GenerateLeftMesh(mf, transform, slp1.plane, slp1.slVectors);
+                SlicedMeshLibrary.GenerateRightMesh(mf, transform, slp1.plane, slp1.slVectors);
             }
 
         }
@@ -224,10 +186,65 @@ public class CuttingTool : MonoBehaviour
             Gizmos.DrawSphere(p, 0.025f);
         }
 
-        if (slp != null)
-            slp.drawOnGizmos();
+        if (slp1 != null)
+            slp1.drawOnGizmos();
     }
 
+    //To do add into a static class
+
+
+
+    //equation plane N1x(x - xA) + N1y(y - yA) + N1z(z - zA) + d1 = 0 | A e plane
+    //equation plane N2x(x - xB) + N2y(y - yB) + N2z(z - zB) + d2 = 0 | B e plane
+    //where X = 0.0f
+    //find intersection point p with two planes
+    //Debug.Log("x1 " + x1 + " y1 " + y1 + " z1 " + z1 + " d1 " + d1);
+    //Debug.Log("x2 " + x2 + " y2 " + y2 + " z2 " + z2 + " d2 " + d2);
+    public bool IntersectionPlanToPlan(ref Vector3 intersection, ref Vector3 sliceDir, SlicePlane plane1, SlicePlane plane2)
+    {
+        sliceDir = Vector3.Cross(plane1.plane.normal, plane2.plane.normal);
+
+        float x1 = plane1.x;
+        float y1 = plane1.y;
+        float z1 = plane1.z;
+        float d1 = plane1.d;
+
+        float x2 = plane2.x;
+        float y2 = plane2.y;
+        float z2 = plane2.z;
+        float d2 = plane2.d;
+
+        float x = 0.0f;
+        float y = 0.0f;
+        float z = 0.0f;
+
+        if (sliceDir.x != 0.0f)
+        {
+            x = 0.0f;
+            z = ((y2 / y1) * d1 - d2) / (z2 - z1 * y2 / y1);
+            y = (-z1 * z - d1) / y1;
+        }
+        else if (sliceDir.y != 0.0f)
+        {
+            y = 0.0f;
+            z = ((x2 / x1) * d1 - d2) / (z2 - z1 * x2 / x1);
+            x = (-z1 * z - d1) / x1;
+        }
+        else if (sliceDir.z != 0.0f)
+        {
+            z = 0.0f;
+            y = ((x2 / x1) * d1 - d2) / (y2 - y1 * x2 / x1);
+            x = (-y1 * y - d1) / x1;
+        }
+        else
+            return false;
+
+        intersection.x = x;
+        intersection.y = y;
+        intersection.z = z;
+
+        return true;
+    }
     public bool IntersectionVectorToVector(out Vector3 ptIntersection, Vector3 A1, Vector3 A2, Vector3 B1, Vector3 vB)
     {
         float u = 0.0f;

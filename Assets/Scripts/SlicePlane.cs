@@ -12,9 +12,12 @@ public class SlicePlane
     }
 
     public Plane plane;
-    public Vector3 a;
-    public Vector3 b;
-    public Vector3 c;
+    private Vector3 a;
+    private Vector3 b;
+    private Vector3 c;
+
+    public float x, y, z, d;
+
     public List<SliceVector> slVectors;
 
     public float DebugLineDist;
@@ -39,11 +42,18 @@ public class SlicePlane
     }
     public void setPoints(Vector3 a, Vector3 b, Vector3 c)
     {
+        plane.Set3Points(a, b, c);
+
         this.a = a;
         this.b = b;
         this.c = c;
+        
+        this.x = plane.normal.x;
+        this.y = plane.normal.y;
+        this.z = plane.normal.z;
+        this.d = -(x * a.x + y * a.y + z * a.z);
 
-        plane.Set3Points(a, b, c);
+       
     }
     public void drawOnGizmos()
     {
@@ -56,14 +66,14 @@ public class SlicePlane
         Gizmos.DrawSphere(c, 0.05f);
         Gizmos.DrawLine(a, a + plane.normal);
 
-        
+
         foreach (SliceVector slv in slVectors)
         {
             Gizmos.color = slv.color;
             Gizmos.DrawSphere(slv.point, 0.05f);
-            Gizmos.DrawLine(slv.point - slv.direction*5000.0f, slv.point + slv.direction * 5000.0f);
+            Gizmos.DrawLine(slv.point - slv.direction * 5000.0f, slv.point + slv.direction * 5000.0f);
         }
-        
+
     }
 
     public void AddNewSlVector(Vector3 point, Vector3 direction, Color color)
