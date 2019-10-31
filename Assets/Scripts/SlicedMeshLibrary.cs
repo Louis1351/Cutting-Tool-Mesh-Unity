@@ -40,12 +40,13 @@ public class SlicedMeshLibrary : MonoBehaviour
 
 
 
-    //equation plane N1x(x - xA) + N1y(y - yA) + N1z(z - zA) + d1 = 0 | A e plane
-    //equation plane N2x(x - xB) + N2y(y - yB) + N2z(z - zB) + d2 = 0 | B e plane
-    //where X = 0.0f
-    //find intersection point p with two planes
-    //Debug.Log("x1 " + x1 + " y1 " + y1 + " z1 " + z1 + " d1 " + d1);
-    //Debug.Log("x2 " + x2 + " y2 " + y2 + " z2 " + z2 + " d2 " + d2);
+
+    ///<summary>equation plane N1x(x - xA) + N1y(y - yA) + N1z(z - zA) + d1 = 0 | A e plane</summary>
+    ///<summary>equation plane N2x(x - xB) + N2y(y - yB) + N2z(z - zB) + d2 = 0 | B e plane</summary>
+    ///<summary>where X = 0.0f</summary>
+    ///<summary>find intersection point p with two planes</summary>
+    ///<summary>x1  + x1 +  y1  + y1 +  z1  + z1 +  d1  + d1 = x2  + x2 +  y2  + y2 +  z2  + z2 +  d2  + d2</summary>
+
     public static bool IntersectionPlanToPlan(ref Vector3 intersection, ref Vector3 sliceDir, SlicePlane plane1, SlicePlane plane2)
     {
         sliceDir = Vector3.Cross(plane1.plane.normal, plane2.plane.normal);
