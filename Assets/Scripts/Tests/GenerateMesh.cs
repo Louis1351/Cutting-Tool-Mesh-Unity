@@ -32,15 +32,4 @@ public class GenerateMesh : MonoBehaviour
         customMesh.AssignToMesh(meshFilter);
         customMesh.AssignToSharedMesh(meshCol);
     }
-
-    //Changing colors example 
-    /*void Update()
-    {
-        for (int i = 0; i < customMesh.vertices.Count; i++)
-        {
-            customMesh.colors[i] = Color.black;
-        }
-        customMesh.Recalculate();
-        meshFilter.mesh = customMesh.mesh;
-    }*/
 }

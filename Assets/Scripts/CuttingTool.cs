@@ -152,7 +152,7 @@ public class CuttingTool : MonoBehaviour
                         slp.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta);
                     }
 
-                    if(drawSlice)
+                    if (drawSlice)
                         slp.AddNewSlVector(pointOnSliceVec, sliceDir, Color.green);
                 }
 
@@ -250,7 +250,17 @@ public class CuttingTool : MonoBehaviour
         }
         else
         {
-            u = (vA.x * (B1.y - A1.y) + vA.y * (A1.x - B1.x)) / (vA.y * vB.x - vA.x * vB.y);
+            float det = (vA.y * vB.x - vA.x * vB.y);
+            if (det != 0)
+                u = (vA.x * (B1.y - A1.y) + vA.y * (A1.x - B1.x)) / det;
+
+            det = (vA.z * vB.y - vA.y * vB.z);
+            if (det != 0)
+                u = (vA.y * (B1.z - A1.z) + vA.z * (A1.y - B1.y)) / det;
+
+            det = (vA.z * vB.x - vA.x * vB.z);
+            if (det != 0)
+                u = (vA.x * (B1.z - A1.z) + vA.z * (A1.x - B1.x)) / det;
         }
 
         ptIntersection.x = B1.x + u * vB.x;
@@ -265,6 +275,7 @@ public class CuttingTool : MonoBehaviour
             return true;
         else
             return false;
+
         /*pA.x+t*vA.x = pB.x+u*vB.x
           pA.y+t*vA.y = pB.y+u*vB.y
           pA.z+t*vA.z = pB.z+u*vB.z
