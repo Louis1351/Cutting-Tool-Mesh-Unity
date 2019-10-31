@@ -152,7 +152,7 @@ public class CuttingTool : MonoBehaviour
                         slp.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta);
                     }
 
-                    if (drawSlice)
+                    if (true)
                         slp.AddNewSlVector(pointOnSliceVec, sliceDir, Color.green);
                 }
 
@@ -232,36 +232,25 @@ public class CuttingTool : MonoBehaviour
     {
         float u = 0.0f;
         Vector3 vA = A2 - A1;
+        ptIntersection = Vector3.zero;
 
-        if (vB.y == 0.0f)
-        {
-            //y = 0
-            u = (vA.x * (B1.z - A1.z) + vA.z * (A1.x - B1.x)) / (vA.z * vB.x - vA.x * vB.z);
-        }
-        else if (vB.x == 0.0f)
-        {
-            //x = 0
-            u = (vA.y * (B1.z - A1.z) + vA.z * (A1.y - B1.y)) / (vA.z * vB.y - vA.y * vB.z);
-        }
-        else if (vB.z == 0.0f)
-        {
-            //z = 0
-            u = (vA.x * (B1.y - A1.y) + vA.y * (A1.x - B1.x)) / (vA.y * vB.x - vA.x * vB.y);
-        }
-        else
-        {
-            float det = (vA.y * vB.x - vA.x * vB.y);
-            if (det != 0)
-                u = (vA.x * (B1.y - A1.y) + vA.y * (A1.x - B1.x)) / det;
+        float det = (vA.y * vB.x - vA.x * vB.y);
+        u = (vA.x * (B1.y - A1.y) + vA.y * (A1.x - B1.x)) / det;
 
+        if (det == 0)
+        {
             det = (vA.z * vB.y - vA.y * vB.z);
-            if (det != 0)
-                u = (vA.y * (B1.z - A1.z) + vA.z * (A1.y - B1.y)) / det;
-
-            det = (vA.z * vB.x - vA.x * vB.z);
-            if (det != 0)
-                u = (vA.x * (B1.z - A1.z) + vA.z * (A1.x - B1.x)) / det;
+            u = (vA.y * (B1.z - A1.z) + vA.z * (A1.y - B1.y)) / det;
         }
+
+        if (det == 0)
+        {
+            det = (vA.z * vB.x - vA.x * vB.z);
+            u = (vA.x * (B1.z - A1.z) + vA.z * (A1.x - B1.x)) / det;
+        }
+
+        if (det == 0)
+            return false;
 
         ptIntersection.x = B1.x + u * vB.x;
         ptIntersection.y = B1.y + u * vB.y;
