@@ -106,11 +106,8 @@ public class CuttingTool : MonoBehaviour
 
 
                 }
-
-                Debug.Log("Before " + slData1.slVectors.Count);
+                
                 slData1.CleanUnusedIntersections();
-                Debug.Log("After " + slData1.slVectors.Count);
-
                 SlicedMeshLibrary.GenerateLeftMesh(mf, mr, hit.transform, slData1);
                 SlicedMeshLibrary.GenerateRightMesh(mf, mr, hit.transform, slData1);
             }

@@ -11,7 +11,7 @@ public class SlicedMeshLibrary
         GameObject newMesh;
         CustomMesh mesh = new CustomMesh(out newMesh, "leftMesh", tr, oldMeshR.material);
         Debug.Log("before nb left vertices " + dataPlane.slVectorsLeft.Count);
-        List<SliceData.SliceVector> allVectors = dataPlane.slVectors.Concat(dataPlane.slVectorsLeft).ToList();
+        List<SliceData.SliceVector> allVectors = dataPlane.slVectorsIntersec.Concat(dataPlane.slVectorsLeft).ToList();
         Dictionary<int, List<int>> VerticesTriangles = new Dictionary<int, List<int>>();
 
         for (int i = 0; i < allVectors.Count; i++)
