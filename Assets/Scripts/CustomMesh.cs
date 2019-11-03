@@ -16,6 +16,30 @@ public class CustomMesh
 
     public CustomMesh()
     {
+        InitMeshVertices();
+    }
+
+    public CustomMesh(out GameObject newMesh, string name, Transform tr, Material mat)
+    {
+        newMesh = new GameObject(name);
+        MeshRenderer meshRenderer = newMesh.AddComponent<MeshRenderer>();
+        MeshCollider meshCol = newMesh.AddComponent<MeshCollider>();
+        Rigidbody rb = newMesh.AddComponent<Rigidbody>();
+        MeshFilter meshFilter = newMesh.AddComponent<MeshFilter>();
+
+        rb.isKinematic = true;
+        newMesh.transform.localPosition = tr.localPosition;
+        newMesh.transform.localRotation = tr.localRotation;
+        newMesh.transform.localScale = tr.localScale;
+
+        meshRenderer.material = mat;
+        meshCol.convex = true;
+
+        InitMeshVertices();
+    }
+
+    private void InitMeshVertices()
+    {
         mesh = new Mesh();
         vertices = new List<Vector3>();
         UVs = new List<Vector2>();
@@ -57,6 +81,7 @@ public class CustomMesh
         mesh.RecalculateNormals();
         mesh.RecalculateTangents();
     }
+    //test
     public void CreateCube(Vector3 scale)
     {
         #region SET VERTICES
