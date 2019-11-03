@@ -19,7 +19,7 @@ public class SliceData
 
     public float x, y, z, d;
 
-    public List<SliceVector> slVectors, slVectorsLeft, slVectorsRight;
+    public List<SliceVector> slVectorsIntersec, slVectorsLeft, slVectorsRight;
 
     public float DebugLineDist;
 
@@ -27,7 +27,7 @@ public class SliceData
     #endregion
     public SliceData()
     {
-        slVectors = new List<SliceVector>();
+        slVectorsIntersec = new List<SliceVector>();
         slVectorsLeft = new List<SliceVector>();
         slVectorsRight = new List<SliceVector>();
 
@@ -46,7 +46,7 @@ public class SliceData
     }
     public void Clear()
     {
-        slVectors.Clear();
+        slVectorsIntersec.Clear();
         slVectorsLeft.Clear();
         slVectorsRight.Clear();
     }
@@ -78,7 +78,7 @@ public class SliceData
             Gizmos.DrawSphere(slv.point, 0.05f);
         }
 
-        foreach (SliceVector slv in slVectors)
+        foreach (SliceVector slv in slVectorsIntersec)
         {
             Gizmos.color = slv.color;
             Gizmos.DrawSphere(slv.point, 0.05f);
@@ -100,7 +100,7 @@ public class SliceData
     public void AddNewSlVector(Vector3 point, Vector3 direction, Color color, int triangleIndex, bool checkSide = false)
     {
         SliceVector slv;
-        List<SliceVector> tmp = slVectors;
+        List<SliceVector> tmp = slVectorsIntersec;
         bool find = false;
         int triangleID = triangleIndex / 3;
         slv.point = point;
@@ -142,20 +142,20 @@ public class SliceData
 
     public void CleanUnusedIntersections()
     {
-        for (int i = slVectors.Count - 1; i >= 0; i--)
+        for (int i = slVectorsIntersec.Count - 1; i >= 0; i--)
         {
-            Vector3 currentPoint = slVectors[i].point;
+            Vector3 currentPoint = slVectorsIntersec[i].point;
             bool removedCurrent = false;
-            for (int j = slVectors.Count - 1; j >= 0; j--)
+            for (int j = slVectorsIntersec.Count - 1; j >= 0; j--)
             {
                 if (j == i) continue;
                 for (int k = j - 1; k >= 0; k--)
                 {
                     if (k == i) continue;
                   
-                    if (SlicedMeshLibrary.PointBetweenOthersPoints(slVectors[j].point, slVectors[k].point, currentPoint))
+                    if (SlicedMeshLibrary.PointBetweenOthersPoints(slVectorsIntersec[j].point, slVectorsIntersec[k].point, currentPoint))
                     {
-                        slVectors.RemoveAt(i);
+                        slVectorsIntersec.RemoveAt(i);
                         removedCurrent = true;
                         break;
                     }
