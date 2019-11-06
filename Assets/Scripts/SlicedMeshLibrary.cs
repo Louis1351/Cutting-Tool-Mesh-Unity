@@ -9,8 +9,8 @@ public class SlicedMeshLibrary
     public static void GenerateLeftMesh(MeshFilter oldMeshF, MeshRenderer oldMeshR, Transform tr, SliceData dataPlane)
     {
         GameObject newMesh;
-        CustomMesh mesh = new CustomMesh(out newMesh, "leftMesh", tr, oldMeshR.material);
-        Debug.Log("before nb left vertices " + dataPlane.slVectorsLeft.Count);
+        CustomMesh mesh = new CustomMesh(out newMesh, "left Mesh", tr, oldMeshR.material);
+        //Debug.Log("before nb left vertices " + dataPlane.slVectorsLeft.Count);
         List<SliceData.SliceVector> allVectors = dataPlane.slVectorsIntersec.Concat(dataPlane.slVectorsLeft).ToList();
         Dictionary<int, List<int>> VerticesTriangles = new Dictionary<int, List<int>>();
 
@@ -41,20 +41,20 @@ public class SlicedMeshLibrary
        
         foreach (KeyValuePair<int, List<int>> keyValue in VerticesTriangles)
         {
-            Debug.Log("//////////////");
+            //Debug.Log("//////////////");
             if (keyValue.Value.Count == 3)
             {
                 foreach (int vertex in keyValue.Value)
                 {
-                    Debug.Log("vertex " + vertex);
+                    //Debug.Log("vertex " + vertex);
                     mesh.triangles.Add(vertex);
                 }     
             }
         }
 
-        Debug.Log("nb left vertices " + allVectors.Count);
-        Debug.Log("nb vertices " + mesh.vertices.Count);
-        Debug.Log("nb triangles " + mesh.triangles.Count);
+        //Debug.Log("nb left vertices " + allVectors.Count);
+        //Debug.Log("nb vertices " + mesh.vertices.Count);
+        //Debug.Log("nb triangles " + mesh.triangles.Count);
 
         mesh.Recalculate();
         mesh.AssignToMesh(newMesh.GetComponent<MeshFilter>());
@@ -63,6 +63,57 @@ public class SlicedMeshLibrary
 
     public static void GenerateRightMesh(MeshFilter oldMeshF, MeshRenderer oldMeshR, Transform tr, SliceData dataPlane)
     {
+        GameObject newMesh;
+        CustomMesh mesh = new CustomMesh(out newMesh, "right Mesh", tr, oldMeshR.material);
+        //Debug.Log("before nb left vertices " + dataPlane.slVectorsLeft.Count);
+        List<SliceData.SliceVector> allVectors = dataPlane.slVectorsIntersec.Concat(dataPlane.slVectorsRight).ToList();
+        Dictionary<int, List<int>> VerticesTriangles = new Dictionary<int, List<int>>();
+
+        for (int i = 0; i < allVectors.Count; i++)
+        {
+            mesh.vertices.Add(tr.InverseTransformPoint(allVectors[i].point));
+            //Debug.Log("//////////////");
+            foreach (int triangleID in allVectors[i].inTriangles)
+            {
+                //Debug.Log(triangleID);
+                List<int> ltmp = null;
+
+                if (VerticesTriangles.ContainsKey(triangleID))
+                    ltmp = VerticesTriangles[triangleID];
+
+                if (ltmp == null)
+                    ltmp = new List<int>();
+
+                ltmp.Add(i);
+
+                if (!VerticesTriangles.ContainsKey(triangleID))
+                    VerticesTriangles.Add(triangleID, ltmp);
+                else VerticesTriangles[triangleID] = ltmp;
+            }
+        }
+
+
+
+        foreach (KeyValuePair<int, List<int>> keyValue in VerticesTriangles)
+        {
+            //Debug.Log("//////////////");
+            if (keyValue.Value.Count == 3)
+            {
+                foreach (int vertex in keyValue.Value)
+                {
+                    //Debug.Log("vertex " + vertex);
+                    mesh.triangles.Add(vertex);
+                }
+            }
+        }
+
+        //Debug.Log("nb left vertices " + allVectors.Count);
+        //Debug.Log("nb vertices " + mesh.vertices.Count);
+        //Debug.Log("nb triangles " + mesh.triangles.Count);
+
+        mesh.Recalculate();
+        mesh.AssignToMesh(newMesh.GetComponent<MeshFilter>());
+        mesh.AssignToSharedMesh(newMesh.GetComponent<MeshCollider>());
     }
 
 

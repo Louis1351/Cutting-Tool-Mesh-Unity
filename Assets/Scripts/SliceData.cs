@@ -19,10 +19,10 @@ public class SliceData
 
     public float x, y, z, d;
 
-    public List<SliceVector> slVectorsIntersec, slVectorsLeft, slVectorsRight;
+    public List<SliceVector> slVectorsIntersec, slVectorsLeft, slVectorsRight, slVectorsDebug;
 
     public float DebugLineDist;
-
+    public bool showDebugLines;
     #region assessors
     #endregion
     public SliceData()
@@ -30,7 +30,7 @@ public class SliceData
         slVectorsIntersec = new List<SliceVector>();
         slVectorsLeft = new List<SliceVector>();
         slVectorsRight = new List<SliceVector>();
-
+        slVectorsDebug = new List<SliceVector>();
         a = Vector3.zero;
         b = Vector3.zero;
         c = Vector3.zero;
@@ -49,6 +49,7 @@ public class SliceData
         slVectorsIntersec.Clear();
         slVectorsLeft.Clear();
         slVectorsRight.Clear();
+        slVectorsDebug.Clear();
     }
     public void setPoints(Vector3 a, Vector3 b, Vector3 c)
     {
@@ -65,6 +66,15 @@ public class SliceData
     }
     public void drawOnGizmos()
     {
+        if (showDebugLines)
+        {
+            foreach (SliceVector slv in slVectorsDebug)
+            {
+                Gizmos.color = slv.color;
+                Gizmos.DrawSphere(slv.point, 0.05f);
+                Gizmos.DrawLine(slv.point - slv.direction * 5000.0f, slv.point + slv.direction * 5000.0f);
+            }
+        }
 
         foreach (SliceVector slv in slVectorsLeft)
         {
@@ -85,6 +95,8 @@ public class SliceData
             Gizmos.DrawLine(slv.point - slv.direction * 5000.0f, slv.point + slv.direction * 5000.0f);
         }
 
+     
+
         Gizmos.color = Color.magenta;
         Gizmos.DrawLine(a, a + (c - a) * DebugLineDist);
         Gizmos.DrawLine(a, a + (b - a) * DebugLineDist);
@@ -96,6 +108,17 @@ public class SliceData
         Gizmos.DrawLine(a, a + plane.normal);
 
 
+    }
+
+    public void AddNewSlVector(Vector3 point, Vector3 direction, Color color)
+    {
+        SliceVector slv;
+        slv.point = point;
+        slv.direction = direction.normalized;
+        slv.color = color;
+        slv.inTriangles = null;
+
+        slVectorsDebug.Add(slv);
     }
     public void AddNewSlVector(Vector3 point, Vector3 direction, Color color, int triangleIndex, bool checkSide = false)
     {
@@ -152,7 +175,7 @@ public class SliceData
                 for (int k = j - 1; k >= 0; k--)
                 {
                     if (k == i) continue;
-                  
+
                     if (SlicedMeshLibrary.PointBetweenOthersPoints(slVectorsIntersec[j].point, slVectorsIntersec[k].point, currentPoint))
                     {
                         slVectorsIntersec.RemoveAt(i);

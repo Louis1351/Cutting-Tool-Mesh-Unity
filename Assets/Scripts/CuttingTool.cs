@@ -9,6 +9,9 @@ public class CuttingTool : MonoBehaviour
     [SerializeField]
     Material mat;
 
+    [SerializeField]
+    bool showDebugLines;
+
     private SliceData slData1;
     private SliceData slData2;
     private Vector3 lastMousePos;
@@ -31,6 +34,7 @@ public class CuttingTool : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        slData1.showDebugLines = showDebugLines;
         if (!hasClicked && Input.GetMouseButtonDown(lftBtn))
         {
             hasClicked = true;
@@ -50,7 +54,7 @@ public class CuttingTool : MonoBehaviour
             if (Physics.Raycast(rayCenter, out hit)
                 && !Physics.Raycast(rayP1, out unusedHit)
                 && !Physics.Raycast(rayP2, out unusedHit))
-            {    
+            {
                 slData1.Clear();
                 slData2.Clear();
 
@@ -101,12 +105,11 @@ public class CuttingTool : MonoBehaviour
                         slData1.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta, i);
                     }
 
-                    //if (drawSlice)
-                    //   slData1.AddNewSlVector(pointOnSliceVec, sliceDir, Color.green,i);
-
+                    if (drawSlice)
+                        slData1.AddNewSlVector(pointOnSliceVec, sliceDir, Color.green);
 
                 }
-                
+
                 slData1.CleanUnusedIntersections();
                 SlicedMeshLibrary.GenerateLeftMesh(mf, mr, hit.transform, slData1);
                 SlicedMeshLibrary.GenerateRightMesh(mf, mr, hit.transform, slData1);
