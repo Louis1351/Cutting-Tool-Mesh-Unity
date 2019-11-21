@@ -1,13 +1,12 @@
 ﻿using UnityEngine;
 
-[ExecuteInEditMode]
 public class CuttingTool : MonoBehaviour
 {
     [SerializeField]
-    Material mat;
+    Material mat = null;
 
     [SerializeField]
-    bool showDebugLines;
+    bool showDebugLines = false;
 
     private SliceData slData1;
     private SliceData slData2;
@@ -24,6 +23,7 @@ public class CuttingTool : MonoBehaviour
         slData2 = new SliceData();
 
         hasClicked = false;
+
         lastMousePos = Vector2.zero;
         lftBtn = 0;
     }
@@ -109,8 +109,7 @@ public class CuttingTool : MonoBehaviour
                 }
 
                 slData1.CleanUnusedIntersections();
-                SlicedMeshLibrary.GenerateLeftMesh(mf, mr, hit.transform, slData1);
-                SlicedMeshLibrary.GenerateRightMesh(mf, mr, hit.transform, slData1);
+                SlicedMeshLibrary.GenerateMeshes(mf, mr, hit.transform, slData1);
             }
 
         }

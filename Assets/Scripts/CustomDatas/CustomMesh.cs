@@ -11,14 +11,13 @@ public class CustomMesh
     public List<Vector2> UVs;
     public List<int> triangles;
 
-    public string name;
-    public Vector3 pivot;
+    private string name;
+    private Vector3 pivot;
 
     public CustomMesh()
     {
         InitMeshVertices();
     }
-
     public CustomMesh(out GameObject newMesh, string name, Transform tr, Material mat)
     {
         newMesh = new GameObject(name);
@@ -37,7 +36,6 @@ public class CustomMesh
 
         InitMeshVertices();
     }
-
     private void InitMeshVertices()
     {
         mesh = new Mesh();
@@ -50,7 +48,6 @@ public class CustomMesh
         pivot = Vector3.one * 0.5f;
         mesh.name = name;
     }
-
     public void Clear()
     {
         vertices.Clear();
@@ -81,7 +78,9 @@ public class CustomMesh
         mesh.RecalculateNormals();
         mesh.RecalculateTangents();
     }
-    //test
+    
+    ///Example cube creation///
+    /*
     public void CreateCube(Vector3 scale)
     {
         #region SET VERTICES
@@ -173,5 +172,5 @@ public class CustomMesh
             colors.Add(Color.blue);
         }
         Recalculate();
-    }
+    }*/
 }

@@ -13,7 +13,11 @@ public class SliceData
 
     private CustomPlane ctmPlane;
 
-    private List<SliceVector> slVectorsIntersec, slVectorsLeft, slVectorsRight, slVectorsDebug;
+    private List<SliceVector> 
+        slVectorsIntersec, 
+        slVectorsLeft, 
+        slVectorsRight, 
+        slVectorsDebug;
 
     private bool showDebugLines;
 

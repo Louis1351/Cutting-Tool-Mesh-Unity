@@ -5,10 +5,10 @@ using UnityEngine;
 public class GenerateMesh : MonoBehaviour
 {
     [SerializeField]
-    Material material;
+    Material material = null;
 
     [SerializeField]
-    Vector3 Scaling;
+    Vector3 Scaling = Vector3.one;
 
     private CustomMesh customMesh;
     private MeshFilter meshFilter;
@@ -28,8 +28,8 @@ public class GenerateMesh : MonoBehaviour
 
         meshFilter = gameObject.AddComponent<MeshFilter>();
        
-        customMesh.CreateCube(Scaling);
+        /*customMesh.CreateCube(Scaling);
         customMesh.AssignToMesh(meshFilter);
-        customMesh.AssignToSharedMesh(meshCol);
+        customMesh.AssignToSharedMesh(meshCol);*/
     }
 }
