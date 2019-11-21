@@ -19,6 +19,8 @@ public class SliceData
         slVectorsRight, 
         slVectorsDebug;
 
+    private List<Face> faces;
+
     private bool showDebugLines;
 
     #region assessors

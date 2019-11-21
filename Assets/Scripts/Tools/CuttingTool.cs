@@ -8,8 +8,8 @@ public class CuttingTool : MonoBehaviour
     [SerializeField]
     bool showDebugLines = false;
 
-    private SliceData slData1;
-    private SliceData slData2;
+    private SliceData data1;
+    private SliceData data2;
     private Vector3 lastMousePos;
     private Vector3 center;
 
@@ -19,8 +19,8 @@ public class CuttingTool : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        slData1 = new SliceData();
-        slData2 = new SliceData();
+        data1 = new SliceData();
+        data2 = new SliceData();
 
         hasClicked = false;
 
@@ -31,7 +31,7 @@ public class CuttingTool : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        slData1.ShowDebugLines = showDebugLines;
+        data1.ShowDebugLines = showDebugLines;
         if (!hasClicked && Input.GetMouseButtonDown(lftBtn))
         {
             hasClicked = true;
@@ -52,11 +52,11 @@ public class CuttingTool : MonoBehaviour
                 && !Physics.Raycast(rayP1, out unusedHit)
                 && !Physics.Raycast(rayP2, out unusedHit))
             {
-                slData1.Clear();
-                slData2.Clear();
+                data1.Clear();
+                data2.Clear();
 
                 center = hit.point;
-                slData1.CtmPlane.Set3Points(
+                data1.CtmPlane.Set3Points(
                     Camera.main.ScreenToWorldPoint(new Vector3(lastMousePos.x, lastMousePos.y, 1.0f)),
                     Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 1.0f)),
                     Camera.main.ScreenToWorldPoint(new Vector3(lastMousePos.x, lastMousePos.y, 1.0f) + Camera.main.transform.forward));
@@ -67,49 +67,46 @@ public class CuttingTool : MonoBehaviour
 
                 for (int i = 0; i < mf.mesh.triangles.Length; i += 3)
                 {
-                    Vector3 localNormal = mf.mesh.normals[mf.mesh.triangles[i]];
-                    Vector3 normalTriangle = hit.transform.TransformVector(localNormal);
-
                     Vector3 V1 = hit.transform.TransformPoint(mf.mesh.vertices[mf.mesh.triangles[i]]);
                     Vector3 V2 = hit.transform.TransformPoint(mf.mesh.vertices[mf.mesh.triangles[i + 1]]);
                     Vector3 V3 = hit.transform.TransformPoint(mf.mesh.vertices[mf.mesh.triangles[i + 2]]);
 
-                    slData2.CtmPlane.Set3Points(V1, V2, V3);
+                    data2.CtmPlane.Set3Points(V1, V2, V3);
 
-                    slData1.AddNewSlVector(V1, Vector3.zero, Color.magenta, i, true);
-                    slData1.AddNewSlVector(V2, Vector3.zero, Color.magenta, i, true);
-                    slData1.AddNewSlVector(V3, Vector3.zero, Color.magenta, i, true);
+                    data1.AddNewSlVector(V1, Vector3.zero, Color.magenta, i, true);
+                    data1.AddNewSlVector(V2, Vector3.zero, Color.magenta, i, true);
+                    data1.AddNewSlVector(V3, Vector3.zero, Color.magenta, i, true);
 
                     Vector3 pointOnSliceVec;
                     Vector3 sliceDir;
 
-                    if (!SlicedMeshLibrary.IntersectionPlanToPlan(out pointOnSliceVec, out sliceDir, slData1.CtmPlane, slData2.CtmPlane))
+                    if (!SlicedMeshLibrary.IntersectionPlanToPlan(out pointOnSliceVec, out sliceDir, data1.CtmPlane, data2.CtmPlane))
                         continue;
 
                     bool drawSlice = false;
                     if (SlicedMeshLibrary.IntersectionVectorToVector(out finalPoint, V2, V1, pointOnSliceVec, sliceDir))
                     {
                         drawSlice = true;
-                        slData1.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta, i);
+                        data1.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta, i);
                     }
                     if (SlicedMeshLibrary.IntersectionVectorToVector(out finalPoint, V3, V2, pointOnSliceVec, sliceDir))
                     {
                         drawSlice = true;
-                        slData1.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta, i);
+                        data1.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta, i);
                     }
                     if (SlicedMeshLibrary.IntersectionVectorToVector(out finalPoint, V1, V3, pointOnSliceVec, sliceDir))
                     {
                         drawSlice = true;
-                        slData1.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta, i);
+                        data1.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta, i);
                     }
 
                     if (drawSlice)
-                        slData1.AddNewSlVectorDebug(pointOnSliceVec, sliceDir, Color.green);
+                        data1.AddNewSlVectorDebug(pointOnSliceVec, sliceDir, Color.green);
 
                 }
 
-                slData1.CleanUnusedIntersections();
-                SlicedMeshLibrary.GenerateMeshes(mf, mr, hit.transform, slData1);
+                data1.CleanUnusedIntersections();
+                SlicedMeshLibrary.GenerateMeshes(mf, mr, hit.transform, data1);
             }
 
         }
@@ -151,8 +148,8 @@ public class CuttingTool : MonoBehaviour
         /*Gizmos.color = Color.yellow;
         Gizmos.DrawSphere(center, 0.1f);*/
 
-        if (slData1 != null)
-            slData1.drawOnGizmos();
+        if (data1 != null)
+            data1.drawOnGizmos();
 
     }
 }
