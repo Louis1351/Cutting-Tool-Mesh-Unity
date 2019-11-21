@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class SliceData
@@ -12,37 +11,37 @@ public class SliceData
         public Color color;
     }
 
-    public Plane plane;
-    private Vector3 a;
-    private Vector3 b;
-    private Vector3 c;
+    private CustomPlane ctmPlane;
 
-    public float x, y, z, d;
+    private List<SliceVector> slVectorsIntersec, slVectorsLeft, slVectorsRight, slVectorsDebug;
 
-    public List<SliceVector> slVectorsIntersec, slVectorsLeft, slVectorsRight, slVectorsDebug;
+    private bool showDebugLines;
 
-    public float DebugLineDist;
-    public bool showDebugLines;
     #region assessors
+    public CustomPlane CtmPlane { get => ctmPlane; set => ctmPlane = value; }
+    public bool ShowDebugLines { get => showDebugLines; set => showDebugLines = value; }
+    public List<SliceVector> SlVectorsIntersec { get => slVectorsIntersec; set => slVectorsIntersec = value; }
+    public List<SliceVector> SlVectorsLeft { get => slVectorsLeft; set => slVectorsLeft = value; }
+    public List<SliceVector> SlVectorsRight { get => slVectorsRight; set => slVectorsRight = value; }
+    public List<SliceVector> SlVectorsDebug { get => slVectorsDebug; set => slVectorsDebug = value; }
+   
     #endregion
+
     public SliceData()
     {
         slVectorsIntersec = new List<SliceVector>();
         slVectorsLeft = new List<SliceVector>();
         slVectorsRight = new List<SliceVector>();
         slVectorsDebug = new List<SliceVector>();
-        a = Vector3.zero;
-        b = Vector3.zero;
-        c = Vector3.zero;
-        DebugLineDist = 10.0f;
+        ctmPlane = new CustomPlane();
     }
     public SliceData(Vector3 a, Vector3 b, Vector3 c)
     {
-        plane.Set3Points(a, b, c);
-        this.a = a;
-        this.b = b;
-        this.c = c;
-        DebugLineDist = 10.0f;
+        slVectorsIntersec = new List<SliceVector>();
+        slVectorsLeft = new List<SliceVector>();
+        slVectorsRight = new List<SliceVector>();
+        slVectorsDebug = new List<SliceVector>();
+        ctmPlane = new CustomPlane(a, b, c);
     }
     public void Clear()
     {
@@ -51,66 +50,7 @@ public class SliceData
         slVectorsRight.Clear();
         slVectorsDebug.Clear();
     }
-    public void setPoints(Vector3 a, Vector3 b, Vector3 c)
-    {
-        plane.Set3Points(a, b, c);
-
-        this.a = a;
-        this.b = b;
-        this.c = c;
-
-        this.x = plane.normal.x;
-        this.y = plane.normal.y;
-        this.z = plane.normal.z;
-        this.d = -(x * a.x + y * a.y + z * a.z);
-    }
-    public void drawOnGizmos()
-    {
-        if (showDebugLines)
-        {
-            foreach (SliceVector slv in slVectorsDebug)
-            {
-                Gizmos.color = slv.color;
-                Gizmos.DrawSphere(slv.point, 0.05f);
-                Gizmos.DrawLine(slv.point - slv.direction * 5000.0f, slv.point + slv.direction * 5000.0f);
-            }
-        }
-
-        foreach (SliceVector slv in slVectorsLeft)
-        {
-            Gizmos.color = slv.color;
-            Gizmos.DrawSphere(slv.point, 0.05f);
-        }
-
-        foreach (SliceVector slv in slVectorsRight)
-        {
-            Gizmos.color = slv.color;
-            Gizmos.DrawSphere(slv.point, 0.05f);
-        }
-
-        foreach (SliceVector slv in slVectorsIntersec)
-        {
-            Gizmos.color = slv.color;
-            Gizmos.DrawSphere(slv.point, 0.05f);
-            Gizmos.DrawLine(slv.point - slv.direction * 5000.0f, slv.point + slv.direction * 5000.0f);
-        }
-
-     
-
-        Gizmos.color = Color.magenta;
-        Gizmos.DrawLine(a, a + (c - a) * DebugLineDist);
-        Gizmos.DrawLine(a, a + (b - a) * DebugLineDist);
-
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawSphere(a, 0.05f);
-        Gizmos.DrawSphere(b, 0.05f);
-        Gizmos.DrawSphere(c, 0.05f);
-        Gizmos.DrawLine(a, a + plane.normal);
-
-
-    }
-
-    public void AddNewSlVector(Vector3 point, Vector3 direction, Color color)
+    public void AddNewSlVectorDebug(Vector3 point, Vector3 direction, Color color)
     {
         SliceVector slv;
         slv.point = point;
@@ -132,7 +72,7 @@ public class SliceData
 
         if (checkSide)
         {
-            if (!plane.GetSide(point))
+            if (!ctmPlane.GetSide(point))
             {
                 tmp = slVectorsLeft;
                 slv.color = Color.red;
@@ -162,7 +102,6 @@ public class SliceData
             tmp.Add(slv);
         }
     }
-
     public void CleanUnusedIntersections()
     {
         for (int i = slVectorsIntersec.Count - 1; i >= 0; i--)
@@ -190,4 +129,28 @@ public class SliceData
 
         }
     }
+
+    #region DRAWFUNCTIONS
+    public void drawOnGizmos()
+    {
+        if (ShowDebugLines)
+            DrawSliceVectors(slVectorsDebug, 0.05f, true);
+
+        DrawSliceVectors(slVectorsLeft, 0.05f);
+        DrawSliceVectors(slVectorsRight, 0.05f);
+        DrawSliceVectors(slVectorsIntersec, 0.05f, true);
+
+        ctmPlane.DrawPlane();
+    }
+    public void DrawSliceVectors(List<SliceVector> _listSliceVector, float _pointSize, bool _drawLine = false)
+    {
+        foreach (SliceVector slv in _listSliceVector)
+        {
+            Gizmos.color = slv.color;
+            Gizmos.DrawSphere(slv.point, _pointSize);
+            if (_drawLine)
+                Gizmos.DrawLine(slv.point - slv.direction * 5000.0f, slv.point + slv.direction * 5000.0f);
+        }
+    }
+    #endregion
 }

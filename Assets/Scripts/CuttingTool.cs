@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor;
+﻿using UnityEngine;
 
 [ExecuteInEditMode]
 public class CuttingTool : MonoBehaviour
@@ -34,7 +31,7 @@ public class CuttingTool : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        slData1.showDebugLines = showDebugLines;
+        slData1.ShowDebugLines = showDebugLines;
         if (!hasClicked && Input.GetMouseButtonDown(lftBtn))
         {
             hasClicked = true;
@@ -59,7 +56,7 @@ public class CuttingTool : MonoBehaviour
                 slData2.Clear();
 
                 center = hit.point;
-                slData1.setPoints(
+                slData1.CtmPlane.Set3Points(
                     Camera.main.ScreenToWorldPoint(new Vector3(lastMousePos.x, lastMousePos.y, 1.0f)),
                     Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 1.0f)),
                     Camera.main.ScreenToWorldPoint(new Vector3(lastMousePos.x, lastMousePos.y, 1.0f) + Camera.main.transform.forward));
@@ -67,6 +64,7 @@ public class CuttingTool : MonoBehaviour
                 MeshFilter mf = hit.transform.GetComponent<MeshFilter>();
                 MeshRenderer mr = hit.transform.GetComponent<MeshRenderer>();
                 Vector3 finalPoint;
+
                 for (int i = 0; i < mf.mesh.triangles.Length; i += 3)
                 {
                     Vector3 localNormal = mf.mesh.normals[mf.mesh.triangles[i]];
@@ -76,7 +74,7 @@ public class CuttingTool : MonoBehaviour
                     Vector3 V2 = hit.transform.TransformPoint(mf.mesh.vertices[mf.mesh.triangles[i + 1]]);
                     Vector3 V3 = hit.transform.TransformPoint(mf.mesh.vertices[mf.mesh.triangles[i + 2]]);
 
-                    slData2.setPoints(V1, V2, V3);
+                    slData2.CtmPlane.Set3Points(V1, V2, V3);
 
                     slData1.AddNewSlVector(V1, Vector3.zero, Color.magenta, i, true);
                     slData1.AddNewSlVector(V2, Vector3.zero, Color.magenta, i, true);
@@ -85,7 +83,7 @@ public class CuttingTool : MonoBehaviour
                     Vector3 pointOnSliceVec;
                     Vector3 sliceDir;
 
-                    if (!SlicedMeshLibrary.IntersectionPlanToPlan(out pointOnSliceVec, out sliceDir, slData1, slData2))
+                    if (!SlicedMeshLibrary.IntersectionPlanToPlan(out pointOnSliceVec, out sliceDir, slData1.CtmPlane, slData2.CtmPlane))
                         continue;
 
                     bool drawSlice = false;
@@ -106,7 +104,7 @@ public class CuttingTool : MonoBehaviour
                     }
 
                     if (drawSlice)
-                        slData1.AddNewSlVector(pointOnSliceVec, sliceDir, Color.green);
+                        slData1.AddNewSlVectorDebug(pointOnSliceVec, sliceDir, Color.green);
 
                 }
 
@@ -118,6 +116,10 @@ public class CuttingTool : MonoBehaviour
         }
 
     }
+
+    /// <summary>
+    /// DRAW EVERYTHING ///
+    /// </summary>
     void OnPostRender()
     {
         if (hasClicked)
