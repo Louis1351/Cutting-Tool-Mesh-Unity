@@ -9,7 +9,7 @@ public class CuttingTool : MonoBehaviour
     bool showDebugLines = false;
 
     private SliceData data1;
-    private SliceData data2;
+    private CustomPlane ctmplane2;
     private Vector3 lastMousePos;
     private Vector3 center;
 
@@ -20,7 +20,7 @@ public class CuttingTool : MonoBehaviour
     void Start()
     {
         data1 = new SliceData();
-        data2 = new SliceData();
+        ctmplane2 = new CustomPlane();
 
         hasClicked = false;
 
@@ -53,7 +53,6 @@ public class CuttingTool : MonoBehaviour
                 && !Physics.Raycast(rayP2, out unusedHit))
             {
                 data1.Clear();
-                data2.Clear();
 
                 center = hit.point;
                 data1.CtmPlane.Set3Points(
@@ -81,16 +80,16 @@ public class CuttingTool : MonoBehaviour
                     Edge edge2 = new Edge(V2, V3);
                     Edge edge3 = new Edge(V1, V3);
 
-                    data2.CtmPlane.Set3Points(V1, V2, V3);
+                    ctmplane2.Set3Points(V1, V2, V3);
 
-                    data1.AddNewSlVector(V1, Vector3.zero, Color.magenta/*, i, */, true);
-                    data1.AddNewSlVector(V2, Vector3.zero, Color.magenta/*, i,*/ , true);
-                    data1.AddNewSlVector(V3, Vector3.zero, Color.magenta/*, i, */, true);
+                    data1.AddNewSlVectorDebug(V1, Vector3.zero, Color.magenta, false, true);
+                    data1.AddNewSlVectorDebug(V2, Vector3.zero, Color.magenta, false, true);
+                    data1.AddNewSlVectorDebug(V3, Vector3.zero, Color.magenta, false, true);
 
                     Vector3 pointOnSliceVec;
                     Vector3 sliceDir;
 
-                    if (!SlicedMeshLibrary.IntersectionPlanToPlan(out pointOnSliceVec, out sliceDir, data1.CtmPlane, data2.CtmPlane))
+                    if (!SlicedMeshLibrary.IntersectionPlanToPlan(out pointOnSliceVec, out sliceDir, data1.CtmPlane, ctmplane2))
                     {
                         data1.AddFace(FaceID, face1);
                         data1.AddEdge(FaceID, edge1);
@@ -104,21 +103,21 @@ public class CuttingTool : MonoBehaviour
                     if (SlicedMeshLibrary.IntersectionVectorToVector(out finalPoint, V2, V1, pointOnSliceVec, sliceDir))
                     {
                         drawSlice = true;
-                        data1.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta/*, i, true*/);
+                        data1.AddNewSlVectorDebug(finalPoint, Vector3.zero, Color.magenta, true, false);
                         data1.AddSeperateEdges(FaceID, face1, face2, V1, V2, finalPoint);
                     }
 
                     if (SlicedMeshLibrary.IntersectionVectorToVector(out finalPoint, V3, V2, pointOnSliceVec, sliceDir))
                     {
                         drawSlice = true;
-                        data1.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta/*, i, true*/);
+                        data1.AddNewSlVectorDebug(finalPoint, Vector3.zero, Color.magenta, true, false);
                         data1.AddSeperateEdges(FaceID, face1, face2, V3, V2, finalPoint);
                     }
 
                     if (SlicedMeshLibrary.IntersectionVectorToVector(out finalPoint, V1, V3, pointOnSliceVec, sliceDir))
                     {
                         drawSlice = true;
-                        data1.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta/*, i, true*/);
+                        data1.AddNewSlVectorDebug(finalPoint, Vector3.zero, Color.magenta, true, false);
                         data1.AddSeperateEdges(FaceID, face1, face2, V1, V3, finalPoint);
                     }
 
@@ -126,9 +125,9 @@ public class CuttingTool : MonoBehaviour
                     {
                         data1.AddNewSlVectorDebug(pointOnSliceVec, sliceDir, Color.green);
                     }
-
                 }
-                //data1.CleanUnusedIntersections();
+
+                data1.CleanUnusedIntersections();
                 SlicedMeshLibrary.GenerateMeshes(mf, mr, hit.transform, data1);
             }
 
