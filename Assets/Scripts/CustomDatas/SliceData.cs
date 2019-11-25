@@ -147,6 +147,7 @@ public class SliceData
         }
         else
         {
+            AddFace(_FaceID + 1, _f2);
             AddEdge(_FaceID + 1, newEdge2);
         }
 
