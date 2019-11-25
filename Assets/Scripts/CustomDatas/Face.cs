@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class Face
 {
-    private List<Edge> points;
+    private List<Edge> edges;
 
-    public List<Edge> Points { get => points; set => points = value; }
+    public List<Edge> Edges { get => edges; set => edges = value; }
 
     public Face()
     {
-        Points = new List<Edge>();
+        edges = new List<Edge>();
     }
 }

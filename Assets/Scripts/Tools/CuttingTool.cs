@@ -63,49 +63,72 @@ public class CuttingTool : MonoBehaviour
 
                 MeshFilter mf = hit.transform.GetComponent<MeshFilter>();
                 MeshRenderer mr = hit.transform.GetComponent<MeshRenderer>();
+
+                int FaceID = 0;
                 Vector3 finalPoint;
 
                 for (int i = 0; i < mf.mesh.triangles.Length; i += 3)
                 {
+                    FaceID += 2;
                     Vector3 V1 = hit.transform.TransformPoint(mf.mesh.vertices[mf.mesh.triangles[i]]);
                     Vector3 V2 = hit.transform.TransformPoint(mf.mesh.vertices[mf.mesh.triangles[i + 1]]);
                     Vector3 V3 = hit.transform.TransformPoint(mf.mesh.vertices[mf.mesh.triangles[i + 2]]);
 
+                    Face face1 = new Face();
+                    Face face2 = new Face();
+
+                    Edge edge1 = new Edge(V1, V2);
+                    Edge edge2 = new Edge(V2, V3);
+                    Edge edge3 = new Edge(V1, V3);
+
                     data2.CtmPlane.Set3Points(V1, V2, V3);
 
-                    data1.AddNewSlVector(V1, Vector3.zero, Color.magenta, i, true);
-                    data1.AddNewSlVector(V2, Vector3.zero, Color.magenta, i, true);
-                    data1.AddNewSlVector(V3, Vector3.zero, Color.magenta, i, true);
+                    data1.AddNewSlVector(V1, Vector3.zero, Color.magenta/*, i, */, true);
+                    data1.AddNewSlVector(V2, Vector3.zero, Color.magenta/*, i,*/ , true);
+                    data1.AddNewSlVector(V3, Vector3.zero, Color.magenta/*, i, */, true);
 
                     Vector3 pointOnSliceVec;
                     Vector3 sliceDir;
 
                     if (!SlicedMeshLibrary.IntersectionPlanToPlan(out pointOnSliceVec, out sliceDir, data1.CtmPlane, data2.CtmPlane))
+                    {
+                        data1.AddFace(FaceID, face1);
+                        data1.AddEdge(FaceID, edge1);
+                        data1.AddEdge(FaceID, edge2);
+                        data1.AddEdge(FaceID, edge3);
+
                         continue;
+                    }
 
                     bool drawSlice = false;
                     if (SlicedMeshLibrary.IntersectionVectorToVector(out finalPoint, V2, V1, pointOnSliceVec, sliceDir))
                     {
                         drawSlice = true;
-                        data1.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta, i);
+                        data1.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta/*, i, true*/);
+                        data1.AddSeperateEdges(FaceID, face1, face2, V1, V2, finalPoint);
                     }
+
                     if (SlicedMeshLibrary.IntersectionVectorToVector(out finalPoint, V3, V2, pointOnSliceVec, sliceDir))
                     {
                         drawSlice = true;
-                        data1.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta, i);
+                        data1.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta/*, i, true*/);
+                        data1.AddSeperateEdges(FaceID, face1, face2, V3, V2, finalPoint);
                     }
+
                     if (SlicedMeshLibrary.IntersectionVectorToVector(out finalPoint, V1, V3, pointOnSliceVec, sliceDir))
                     {
                         drawSlice = true;
-                        data1.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta, i);
+                        data1.AddNewSlVector(finalPoint, Vector3.zero, Color.magenta/*, i, true*/);
+                        data1.AddSeperateEdges(FaceID, face1, face2, V1, V3, finalPoint);
                     }
 
                     if (drawSlice)
+                    {
                         data1.AddNewSlVectorDebug(pointOnSliceVec, sliceDir, Color.green);
+                    }
 
                 }
-
-                data1.CleanUnusedIntersections();
+                //data1.CleanUnusedIntersections();
                 SlicedMeshLibrary.GenerateMeshes(mf, mr, hit.transform, data1);
             }
 
@@ -144,12 +167,7 @@ public class CuttingTool : MonoBehaviour
     }
     void OnDrawGizmos()
     {
-        // Draw a yellow sphere at the transform's position
-        /*Gizmos.color = Color.yellow;
-        Gizmos.DrawSphere(center, 0.1f);*/
-
         if (data1 != null)
             data1.drawOnGizmos();
-
     }
 }

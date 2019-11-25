@@ -3,54 +3,60 @@ using UnityEngine;
 
 public class SliceData
 {
-    public struct SliceVector
+    public struct DebugVector
     {
         public Vector3 direction;
         public Vector3 point;
-        public List<int> inTriangles;
+        //  public List<int> inTriangles;
         public Color color;
     }
 
     private CustomPlane ctmPlane;
 
-    private List<SliceVector> 
-        slVectorsIntersec, 
-        slVectorsLeft, 
-        slVectorsRight, 
+    private List<DebugVector>
+        slVectorsIntersec,
+        slVectorsLeft,
+        slVectorsRight,
         slVectorsDebug;
 
-    private List<Face> faces;
+    private Dictionary<int, Face> faces;
 
     private bool showDebugLines;
 
     #region assessors
     public CustomPlane CtmPlane { get => ctmPlane; set => ctmPlane = value; }
     public bool ShowDebugLines { get => showDebugLines; set => showDebugLines = value; }
-    public List<SliceVector> SlVectorsIntersec { get => slVectorsIntersec; set => slVectorsIntersec = value; }
-    public List<SliceVector> SlVectorsLeft { get => slVectorsLeft; set => slVectorsLeft = value; }
-    public List<SliceVector> SlVectorsRight { get => slVectorsRight; set => slVectorsRight = value; }
-    public List<SliceVector> SlVectorsDebug { get => slVectorsDebug; set => slVectorsDebug = value; }
-   
+    public List<DebugVector> SlVectorsIntersec { get => slVectorsIntersec; set => slVectorsIntersec = value; }
+    public List<DebugVector> SlVectorsLeft { get => slVectorsLeft; set => slVectorsLeft = value; }
+    public List<DebugVector> SlVectorsRight { get => slVectorsRight; set => slVectorsRight = value; }
+    public List<DebugVector> SlVectorsDebug { get => slVectorsDebug; set => slVectorsDebug = value; }
+    public Dictionary<int, Face> Faces { get => faces; }
+
     #endregion
 
     public SliceData()
     {
-        slVectorsIntersec = new List<SliceVector>();
-        slVectorsLeft = new List<SliceVector>();
-        slVectorsRight = new List<SliceVector>();
-        slVectorsDebug = new List<SliceVector>();
+        slVectorsIntersec = new List<DebugVector>();
+        slVectorsLeft = new List<DebugVector>();
+        slVectorsRight = new List<DebugVector>();
+        slVectorsDebug = new List<DebugVector>();
+
+        faces = new Dictionary<int, Face>();
         ctmPlane = new CustomPlane();
     }
     public SliceData(Vector3 a, Vector3 b, Vector3 c)
     {
-        slVectorsIntersec = new List<SliceVector>();
-        slVectorsLeft = new List<SliceVector>();
-        slVectorsRight = new List<SliceVector>();
-        slVectorsDebug = new List<SliceVector>();
+        slVectorsIntersec = new List<DebugVector>();
+        slVectorsLeft = new List<DebugVector>();
+        slVectorsRight = new List<DebugVector>();
+        slVectorsDebug = new List<DebugVector>();
+
+        faces = new Dictionary<int, Face>();
         ctmPlane = new CustomPlane(a, b, c);
     }
     public void Clear()
     {
+        faces.Clear();
         slVectorsIntersec.Clear();
         slVectorsLeft.Clear();
         slVectorsRight.Clear();
@@ -58,20 +64,20 @@ public class SliceData
     }
     public void AddNewSlVectorDebug(Vector3 point, Vector3 direction, Color color)
     {
-        SliceVector slv;
+        DebugVector slv;
         slv.point = point;
         slv.direction = direction.normalized;
         slv.color = color;
-        slv.inTriangles = null;
+        // slv.inTriangles = null;
 
         slVectorsDebug.Add(slv);
     }
-    public void AddNewSlVector(Vector3 point, Vector3 direction, Color color, int triangleIndex, bool checkSide = false)
+    public void AddNewSlVector(Vector3 point, Vector3 direction, Color color/*, int triangleIndex,*/, bool checkSide = false)
     {
-        SliceVector slv;
-        List<SliceVector> tmp = slVectorsIntersec;
+        DebugVector slv;
+        List<DebugVector> tmp = slVectorsIntersec;
         bool find = false;
-        int triangleID = triangleIndex / 3;
+      //  int triangleID = triangleIndex / 3;
         slv.point = point;
         slv.direction = direction.normalized;
         slv.color = color;
@@ -90,12 +96,12 @@ public class SliceData
             }
         }
 
-        foreach (SliceVector s in tmp)
+        foreach (DebugVector s in tmp)
         {
             if (s.point == point)
             {
-                if (!s.inTriangles.Contains(triangleID))
-                    s.inTriangles.Add(triangleID);
+                /*if (!s.inTriangles.Contains(triangleID))
+                    s.inTriangles.Add(triangleID);*/
                 find = true;
                 break;
             }
@@ -103,10 +109,47 @@ public class SliceData
 
         if (!find)
         {
-            slv.inTriangles = new List<int>();
-            slv.inTriangles.Add(triangleID);
+            /*slv.inTriangles = new List<int>();
+            slv.inTriangles.Add(triangleID);*/
             tmp.Add(slv);
         }
+    }
+    public void AddFace(int _FaceID, Face _face)
+    {
+        if (!faces.ContainsValue(_face))
+            faces.Add(_FaceID, _face);
+    }
+    public void AddEdge(int _FaceID, Edge _edge)
+    {
+        if (!faces[_FaceID].Edges.Contains(_edge))
+            faces[_FaceID].Edges.Add(_edge);
+    }
+    public void AddSeperateEdges(int _FaceID, Face _f1, Face _f2, Vector3 _V1, Vector3 _V2, Vector3 _intersection)
+    {
+        Edge newEdge1 = new Edge(_V1, _intersection);
+        Edge newEdge2 = new Edge(_V2, _intersection);
+
+        if (!ctmPlane.GetSide(_V1))
+        {
+            AddFace(_FaceID, _f1);
+            AddEdge(_FaceID, newEdge1);
+        }
+        else
+        {
+            AddFace(_FaceID + 1, _f2);
+            AddEdge(_FaceID + 1, newEdge1);
+        }
+
+        if (!ctmPlane.GetSide(_V2))
+        {
+            AddFace(_FaceID, _f1);
+            AddEdge(_FaceID, newEdge2);
+        }
+        else
+        {
+            AddEdge(_FaceID + 1, newEdge2);
+        }
+
     }
     public void CleanUnusedIntersections()
     {
@@ -135,7 +178,6 @@ public class SliceData
 
         }
     }
-
     #region DRAWFUNCTIONS
     public void drawOnGizmos()
     {
@@ -148,9 +190,9 @@ public class SliceData
 
         ctmPlane.DrawPlane();
     }
-    public void DrawSliceVectors(List<SliceVector> _listSliceVector, float _pointSize, bool _drawLine = false)
+    public void DrawSliceVectors(List<DebugVector> _listSliceVector, float _pointSize, bool _drawLine = false)
     {
-        foreach (SliceVector slv in _listSliceVector)
+        foreach (DebugVector slv in _listSliceVector)
         {
             Gizmos.color = slv.color;
             Gizmos.DrawSphere(slv.point, _pointSize);
