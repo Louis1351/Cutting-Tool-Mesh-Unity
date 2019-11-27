@@ -223,7 +223,7 @@ public class SlicedMeshLibrary
             {
                 foreach (Edge e in edges)
                 {
-                    _data.AddEdge(FaceID, new Edge());
+                    _data.AddEdge(FaceID, new Edge(e.Points[0]));
                 }
                 continue;
             }
@@ -238,7 +238,7 @@ public class SlicedMeshLibrary
                     _data.AddNewSlVectorDebug(finalPoint, Vector3.zero, Color.magenta, true, false);
                     _data.AddSeperateEdges(FaceID, e, finalPoint);
                 }
-                else _data.AddEdge(FaceID, e);
+                else _data.AddEdge(FaceID, new Edge(e.Points[0]));
             }
 
             if (drawSlice)
