@@ -7,7 +7,6 @@ public class SliceData
     {
         public Vector3 direction;
         public Vector3 point;
-        //  public List<int> inTriangles;
         public Color color;
     }
 
@@ -15,8 +14,6 @@ public class SliceData
 
     private List<DebugVector>
         slVectorsIntersec,
-        /*slVectorsLeft,
-        slVectorsRight,*/
         slVectorsDebug;
 
     private Dictionary<int, Face> faces;
@@ -27,8 +24,6 @@ public class SliceData
     public CustomPlane CtmPlane { get => ctmPlane; set => ctmPlane = value; }
     public bool ShowDebugLines { get => showDebugLines; set => showDebugLines = value; }
     public List<DebugVector> SlVectorsIntersec { get => slVectorsIntersec; set => slVectorsIntersec = value; }
-    // public List<DebugVector> SlVectorsLeft { get => slVectorsLeft; set => slVectorsLeft = value; }
-    // public List<DebugVector> SlVectorsRight { get => slVectorsRight; set => slVectorsRight = value; }
     public List<DebugVector> SlVectorsDebug { get => slVectorsDebug; set => slVectorsDebug = value; }
     public Dictionary<int, Face> Faces { get => faces; }
 
@@ -37,8 +32,6 @@ public class SliceData
     public SliceData()
     {
         slVectorsIntersec = new List<DebugVector>();
-        // slVectorsLeft = new List<DebugVector>();
-        // slVectorsRight = new List<DebugVector>();
         slVectorsDebug = new List<DebugVector>();
 
         faces = new Dictionary<int, Face>();
@@ -47,8 +40,6 @@ public class SliceData
     public SliceData(Vector3 a, Vector3 b, Vector3 c)
     {
         slVectorsIntersec = new List<DebugVector>();
-        // slVectorsLeft = new List<DebugVector>();
-        // slVectorsRight = new List<DebugVector>();
         slVectorsDebug = new List<DebugVector>();
 
         faces = new Dictionary<int, Face>();
@@ -58,8 +49,6 @@ public class SliceData
     {
         faces.Clear();
         slVectorsIntersec.Clear();
-        //  slVectorsLeft.Clear();
-        //  slVectorsRight.Clear();
         slVectorsDebug.Clear();
     }
     public void AddNewSlVectorDebug(Vector3 point, Vector3 direction, Color color, bool isInter = false, bool checkSide = false)
@@ -87,87 +76,34 @@ public class SliceData
         }
         tmp.Add(slv);
     }
-    /*public void AddNewSlVector(Vector3 point, Vector3 direction, Color color/*, int triangleIndex,*//*, bool checkSide = false)
-    {
-        DebugVector slv;
-        List<DebugVector> tmp = slVectorsIntersec;
-        bool find = false;
-      //  int triangleID = triangleIndex / 3;
-        slv.point = point;
-        slv.direction = direction.normalized;
-        slv.color = color;
-
-        if (checkSide)
-        {
-            if (!ctmPlane.GetSide(point))
-            {
-                //tmp = slVectorsLeft;
-                slv.color = Color.red;
-            }
-            else
-            {
-                //tmp = slVectorsRight;
-                slv.color = Color.blue;
-            }
-        }
-
-        foreach (DebugVector s in tmp)
-        {
-            if (s.point == point)
-            {
-                /*if (!s.inTriangles.Contains(triangleID))
-                    s.inTriangles.Add(triangleID);*/
-                                                                                                      /*           find = true;
-                                                                                                                 break;
-                                                                                                             }
-                                                                                                         }
-
-                                                                                                         if (!find)
-                                                                                                         {
-                                                                                                             /*slv.inTriangles = new List<int>();
-                                                                                                             slv.inTriangles.Add(triangleID);*/
-                                                                                                      /*       tmp.Add(slv);
-                                                                                                         }
-                                                                                                     }*/
     public void AddFace(int _FaceID, Face _face)
     {
         if (!faces.ContainsValue(_face))
             faces.Add(_FaceID, _face);
     }
-    public void AddEdge(int _FaceID, Edge _edge)
+    public void AddEdge(int _FaceID, Edge _edge, int idVertex = 0)
     {
-        if (!faces[_FaceID].Edges.Contains(_edge))
-            faces[_FaceID].Edges.Add(_edge);
-    }
-    public void AddSeperateEdges(int _FaceID, Face _f1, Face _f2, Vector3 _V1, Vector3 _V2, Vector3 _intersection)
-    {
-        Edge newEdge1 = new Edge(_V1, _intersection);
-        Edge newEdge2 = new Edge(_V2, _intersection);
-
-        if (!ctmPlane.GetSide(_V1))
+        if (!ctmPlane.GetSide(_edge.Points[idVertex]))
         {
-            AddFace(_FaceID, _f1);
-            AddEdge(_FaceID, newEdge1);
+            if (!faces[_FaceID].Edges.Contains(_edge))
+                faces[_FaceID].Edges.Add(_edge);
         }
         else
         {
-            AddFace(_FaceID + 1, _f2);
-            AddEdge(_FaceID + 1, newEdge1);
-        }
-
-        if (!ctmPlane.GetSide(_V2))
-        {
-            AddFace(_FaceID, _f1);
-            AddEdge(_FaceID, newEdge2);
-        }
-        else
-        {
-            AddFace(_FaceID + 1, _f2);
-            AddEdge(_FaceID + 1, newEdge2);
+            if (!faces[_FaceID + 1].Edges.Contains(_edge))
+                faces[_FaceID + 1].Edges.Add(_edge);
         }
 
     }
-    public void CleanUnusedIntersections()
+    public void AddSeperateEdges(int _FaceID, Edge _edge, Vector3 _intersection)
+    {
+        Edge newEdge1 = new Edge(_edge.Points[0], _intersection);
+        Edge newEdge2 = new Edge(_intersection, _edge.Points[1]);
+
+        AddEdge(_FaceID, newEdge1);
+        AddEdge(_FaceID, newEdge2, 1);
+    }
+    public void CleanUnusedDebugIntersections()
     {
         for (int i = slVectorsIntersec.Count - 1; i >= 0; i--)
         {
@@ -193,12 +129,11 @@ public class SliceData
 
         }
     }
+    
     #region DRAWFUNCTIONS
     public void drawOnGizmos()
     {
         DrawSliceVectors(slVectorsDebug, 0.05f, ShowDebugLines);
-        /*DrawSliceVectors(slVectorsLeft, 0.05f);
-        DrawSliceVectors(slVectorsRight, 0.05f);*/
         DrawSliceVectors(slVectorsIntersec, 0.05f, false);
 
         ctmPlane.DrawPlane();
