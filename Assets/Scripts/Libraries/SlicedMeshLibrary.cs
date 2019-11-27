@@ -4,16 +4,16 @@ using UnityEngine;
 
 public class SlicedMeshLibrary
 {
-    public static void GenerateMeshes(MeshFilter _oldMeshF, MeshRenderer _oldMeshR, Transform _tr, SliceData _dataPlane)
+    public static void GenerateMeshes(MeshFilter _oldMeshF, MeshRenderer _oldMeshR, SliceData _dataPlane)
     {
         FindNewTriangles(_oldMeshF, ref _dataPlane);
-        GenerateLeftMesh(_oldMeshF, _oldMeshR, _tr, _dataPlane);
-        GenerateRightMesh(_oldMeshF, _oldMeshR, _tr, _dataPlane);
+        GenerateLeftMesh(_oldMeshF, _oldMeshR, _dataPlane);
+        GenerateRightMesh(_oldMeshF, _oldMeshR, _dataPlane);
     }
-    public static void GenerateLeftMesh(MeshFilter _oldMeshF, MeshRenderer _oldMeshR, Transform _tr, SliceData _dataPlane)
+    public static void GenerateLeftMesh(MeshFilter _oldMeshF, MeshRenderer _oldMeshR, SliceData _dataPlane)
     {
         GameObject newMesh;
-        CustomMesh mesh = new CustomMesh(out newMesh, "left Mesh", _tr, _oldMeshR.material);
+        CustomMesh mesh = new CustomMesh(out newMesh, "left Mesh", _oldMeshF.transform, _oldMeshR.material);
 
         int vertexID = 0;
         for (int faceID = 0; faceID < _dataPlane.Faces.Count; faceID += 2)
@@ -23,10 +23,10 @@ public class SlicedMeshLibrary
 
             foreach (Edge e in _dataPlane.Faces[faceID].Edges)
             {
-               
+
                 foreach (Vector3 p in _dataPlane.Faces[faceID].GetDistinctsPoints())
                 {
-                    Vector3 vertexPos = _tr.InverseTransformPoint(p);
+                    Vector3 vertexPos = _oldMeshF.transform.InverseTransformPoint(p);
                     mesh.vertices.Add(vertexPos);
                     mesh.triangles.Add(vertexID);
                     vertexID++;
@@ -41,10 +41,10 @@ public class SlicedMeshLibrary
         mesh.AssignToMesh(newMesh.GetComponent<MeshFilter>());
         mesh.AssignToSharedMesh(newMesh.GetComponent<MeshCollider>());
     }
-    public static void GenerateRightMesh(MeshFilter _oldMeshF, MeshRenderer _oldMeshR, Transform _tr, SliceData _dataPlane)
+    public static void GenerateRightMesh(MeshFilter _oldMeshF, MeshRenderer _oldMeshR, SliceData _dataPlane)
     {
         GameObject newMesh;
-        CustomMesh mesh = new CustomMesh(out newMesh, "right Mesh", _tr, _oldMeshR.material);
+        CustomMesh mesh = new CustomMesh(out newMesh, "right Mesh", _oldMeshF.transform, _oldMeshR.material);
 
         int vertexID = 0;
         for (int faceID = 1; faceID < _dataPlane.Faces.Count; faceID += 2)
@@ -57,7 +57,7 @@ public class SlicedMeshLibrary
 
                 foreach (Vector3 p in _dataPlane.Faces[faceID].GetDistinctsPoints())
                 {
-                    Vector3 vertexPos = _tr.InverseTransformPoint(p);
+                    Vector3 vertexPos = _oldMeshF.transform.InverseTransformPoint(p);
                     mesh.vertices.Add(vertexPos);
                     mesh.triangles.Add(vertexID);
                     vertexID++;
@@ -223,8 +223,8 @@ public class SlicedMeshLibrary
             {
                 foreach (Edge e in edges)
                 {
-                    _data.AddEdge(FaceID, e);
-                }   
+                    _data.AddEdge(FaceID, new Edge());
+                }
                 continue;
             }
 

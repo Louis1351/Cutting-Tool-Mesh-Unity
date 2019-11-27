@@ -61,7 +61,7 @@ public class CuttingTool : MonoBehaviour
                 MeshFilter mf = hit.transform.GetComponent<MeshFilter>();
                 MeshRenderer mr = hit.transform.GetComponent<MeshRenderer>();
 
-                SlicedMeshLibrary.GenerateMeshes(mf, mr, hit.transform, data);
+                SlicedMeshLibrary.GenerateMeshes(mf, mr, data);
             }
 
         }

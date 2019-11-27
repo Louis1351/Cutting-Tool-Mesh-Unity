@@ -17,4 +17,10 @@ public class Edge
         points.Add(p1);
         points.Add(p2);
     }
+
+    public Edge(Vector3 p1)
+    {
+        points = new List<Vector3>();
+        points.Add(p1);
+    }
 }
