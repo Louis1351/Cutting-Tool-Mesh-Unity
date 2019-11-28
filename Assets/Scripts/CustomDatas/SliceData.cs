@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class SliceData
@@ -108,7 +109,8 @@ public class SliceData
         AddEdge(_FaceID, newEdge1, 0);
         AddEdge(_FaceID, newEdge2, 1);
 
-        intersections.Add(_intersection);
+        if (!intersections.Contains(_intersection))
+            intersections.Add(_intersection);
     }
 
     public void CleanUnusedDebugIntersections()
@@ -138,14 +140,14 @@ public class SliceData
         }
     }
 
-    public void DeleteUsedIntersections()
+    public void CleanUnusedIntersections()
     {
-        List<Vector3> tmpList = new List<Vector3>();
+        List<Vector3> tmp = new List<Vector3>(intersections);
 
         for (int i = intersections.Count - 1; i >= 0; i--)
         {
+            Vector3 currentPoint = intersections[i];
             bool removedCurrent = false;
-
             for (int j = intersections.Count - 1; j >= 0; j--)
             {
                 if (j == i) continue;
@@ -153,9 +155,9 @@ public class SliceData
                 {
                     if (k == i) continue;
 
-                    if (!SlicedMeshLibrary.PointBetweenOthersPoints(intersections[j], intersections[k], intersections[i]))
+                    if (SlicedMeshLibrary.PointBetweenOthersPoints(intersections[j], intersections[k], currentPoint))
                     {
-                        tmpList.Add(intersections[i]);
+                        intersections.RemoveAt(i);
                         removedCurrent = true;
                         break;
                     }
@@ -163,18 +165,33 @@ public class SliceData
                 if (removedCurrent)
                     break;
             }
+
         }
 
-        intersections = tmpList;
+        foreach (Vector3 p1 in intersections)
+        {
+            foreach (Vector3 p2 in tmp.ToArray())
+            {
+                if (SlicedMeshLibrary.IsEqualTo(p1, p2, 0.001f))
+                {
+                    tmp.Remove(p2);
+                }
+            }
+        }
+        intersections = tmp;
     }
-
 
     #region DRAWFUNCTIONS
     public void drawOnGizmos()
     {
-        DrawSliceVectors(slVectorsDebug, 0.05f, ShowDebugLines);
-        DrawSliceVectors(slVectorsIntersec, 0.05f, false);
+        /*DrawSliceVectors(slVectorsDebug, 0.05f, ShowDebugLines);
+        DrawSliceVectors(slVectorsIntersec, 0.05f, false);*/
+        foreach (Vector3 p in intersections)
+        {
+            Gizmos.color = Color.black;
+            Gizmos.DrawSphere(p, 0.05f);
 
+        }
         ctmPlane.DrawPlane();
     }
     public void DrawSliceVectors(List<DebugVector> _listSliceVector, float _pointSize, bool _drawLine = false)
