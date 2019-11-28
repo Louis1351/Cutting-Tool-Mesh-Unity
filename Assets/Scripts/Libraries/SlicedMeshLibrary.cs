@@ -231,8 +231,6 @@ public class SlicedMeshLibrary
 
         if (_showDebug)
             _data.CleanUnusedDebugIntersections();
-
-        _data.CleanUnusedIntersections();
     }
 
     public static bool IsEqualTo(Vector3 _a, Vector3 _b, float _precision)
