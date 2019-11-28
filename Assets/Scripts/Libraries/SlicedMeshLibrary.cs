@@ -7,18 +7,19 @@ public class SlicedMeshLibrary
     public static void GenerateMeshes(MeshFilter _oldMeshF, MeshRenderer _oldMeshR, SliceData _dataPlane, bool _showDebug = false)
     {
         FindNewTriangles(_oldMeshF, ref _dataPlane, _showDebug);
-        GenerateLeftMesh(_oldMeshF, _oldMeshR, _dataPlane);
-        GenerateRightMesh(_oldMeshF, _oldMeshR, _dataPlane);
+        GeneratePartMesh(_oldMeshF, _oldMeshR, _dataPlane, true);
+        GeneratePartMesh(_oldMeshF, _oldMeshR, _dataPlane, false);
 
         GameObject.Destroy(_oldMeshF.gameObject);
     }
-    public static void GenerateLeftMesh(MeshFilter _oldMeshF, MeshRenderer _oldMeshR, SliceData _dataPlane)
+    public static void GeneratePartMesh(MeshFilter _oldMeshF, MeshRenderer _oldMeshR, SliceData _dataPlane, bool _isLeft)
     {
         GameObject newMesh;
-        CustomMesh mesh = new CustomMesh(out newMesh, "left Mesh", _oldMeshF.transform, _oldMeshR.material);
-
+        string name = (_isLeft ? "left Mesh" : "right Mesh");
+        CustomMesh mesh = new CustomMesh(out newMesh, name, _oldMeshF.transform, _oldMeshR.material, true);
+      
         int vertexID = 0;
-        for (int faceID = 0; faceID < _dataPlane.Faces.Count; faceID += 2)
+        for (int faceID = (_isLeft ? 1 : 0); faceID < _dataPlane.Faces.Count; faceID += 2)
         {
             if (!_dataPlane.Faces.ContainsKey(faceID))
                 continue;
@@ -28,6 +29,12 @@ public class SlicedMeshLibrary
 
                 foreach (Vector3 p in _dataPlane.Faces[faceID].GetDistinctsPoints())
                 {
+                    if (_dataPlane.Intersections.Contains(p))
+                    {
+                        Debug.Log("intersect");
+                        continue;
+                    } 
+
                     Vector3 vertexPos = _oldMeshF.transform.InverseTransformPoint(p);
                     mesh.vertices.Add(vertexPos);
                     mesh.triangles.Add(vertexID);
@@ -43,38 +50,7 @@ public class SlicedMeshLibrary
         mesh.AssignToMesh(newMesh.GetComponent<MeshFilter>());
         mesh.AssignToSharedMesh(newMesh.GetComponent<MeshCollider>());
     }
-    public static void GenerateRightMesh(MeshFilter _oldMeshF, MeshRenderer _oldMeshR, SliceData _dataPlane)
-    {
-        GameObject newMesh;
-        CustomMesh mesh = new CustomMesh(out newMesh, "right Mesh", _oldMeshF.transform, _oldMeshR.material);
-
-        int vertexID = 0;
-        for (int faceID = 1; faceID < _dataPlane.Faces.Count; faceID += 2)
-        {
-            if (!_dataPlane.Faces.ContainsKey(faceID))
-                continue;
-
-            foreach (Edge e in _dataPlane.Faces[faceID].Edges)
-            {
-
-                foreach (Vector3 p in _dataPlane.Faces[faceID].GetDistinctsPoints())
-                {
-                    Vector3 vertexPos = _oldMeshF.transform.InverseTransformPoint(p);
-                    mesh.vertices.Add(vertexPos);
-                    mesh.triangles.Add(vertexID);
-                    vertexID++;
-                }
-            }
-        }
-
-        /*Debug.Log("nb vertices " + mesh.vertices.Count);
-        Debug.Log("nb triangles " + mesh.triangles.Count);*/
-
-        mesh.Recalculate();
-        mesh.AssignToMesh(newMesh.GetComponent<MeshFilter>());
-        mesh.AssignToSharedMesh(newMesh.GetComponent<MeshCollider>());
-    }
-
+  
     ///<summary>
     ///equation plane N1x(x - xA) + N1y(y - yA) + N1z(z - zA) + d1 = 0 | A e plane<para/>
     ///equation plane N2x(x - xB) + N2y(y - yB) + N2z(z - zB) + d2 = 0 | B e plane<para/>
@@ -234,30 +210,33 @@ public class SlicedMeshLibrary
                 continue;
             }
 
-            bool drawSlice = false;
-
+            bool findIntersection = false;
             foreach (Edge e in edges)
             {
                 if (IntersectionVectorToVector(out finalPoint, e.Points[0], e.Points[1], pointOnSliceVec, sliceDir))
                 {
                     if (_showDebug)
                     {
-                        drawSlice = true;
                         _data.AddNewSlVectorDebug(finalPoint, Vector3.zero, Color.magenta, true, false);
                     }
                     _data.AddSeperateEdges(FaceID, e, finalPoint);
+
+                    findIntersection = true;
                 }
                 else _data.AddEdge(FaceID, new Edge(e.Points[0]));
             }
 
-            if (drawSlice && _showDebug)
+            if (findIntersection && _showDebug)
             {
                 _data.AddNewSlVectorDebug(pointOnSliceVec, sliceDir, Color.green);
             }
         }
 
-        if (_showDebug)
-            _data.CleanUnusedDebugIntersections();
+        //if (_showDebug)
+        //_data.CleanUnusedDebugIntersections();
+        Debug.Log("intersection size before " + _data.Intersections.Count);
+        _data.DeleteUsedIntersections();
+        Debug.Log("intersection size after "+_data.Intersections.Count);
     }
 }
 

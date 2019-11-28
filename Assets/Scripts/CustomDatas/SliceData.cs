@@ -16,6 +16,8 @@ public class SliceData
         slVectorsIntersec,
         slVectorsDebug;
 
+    private List<Vector3> intersections;
+
     private Dictionary<int, Face> faces;
 
     private bool showDebugLines;
@@ -26,13 +28,14 @@ public class SliceData
     public List<DebugVector> SlVectorsIntersec { get => slVectorsIntersec; set => slVectorsIntersec = value; }
     public List<DebugVector> SlVectorsDebug { get => slVectorsDebug; set => slVectorsDebug = value; }
     public Dictionary<int, Face> Faces { get => faces; }
-
+    public List<Vector3> Intersections { get => intersections; }
     #endregion
 
     public SliceData()
     {
         slVectorsIntersec = new List<DebugVector>();
         slVectorsDebug = new List<DebugVector>();
+        intersections = new List<Vector3>();
 
         faces = new Dictionary<int, Face>();
         ctmPlane = new CustomPlane();
@@ -41,6 +44,7 @@ public class SliceData
     {
         slVectorsIntersec = new List<DebugVector>();
         slVectorsDebug = new List<DebugVector>();
+        intersections = new List<Vector3>();
 
         faces = new Dictionary<int, Face>();
         ctmPlane = new CustomPlane(a, b, c);
@@ -48,30 +52,31 @@ public class SliceData
     public void Clear()
     {
         faces.Clear();
+        intersections.Clear();
         slVectorsIntersec.Clear();
         slVectorsDebug.Clear();
     }
-    public void AddNewSlVectorDebug(Vector3 point, Vector3 direction, Color color, bool isInter = false, bool checkSide = false)
+    public void AddNewSlVectorDebug(Vector3 _point, Vector3 _direction, Color _color, bool _isInter = false, bool _checkSide = false)
     {
         List<DebugVector> tmp = slVectorsDebug;
         DebugVector slv;
-        slv.point = point;
-        slv.direction = direction.normalized;
-        slv.color = color;
+        slv.point = _point;
+        slv.direction = _direction.normalized;
+        slv.color = _color;
         // slv.inTriangles = null;
 
-        if (isInter)
+        if (_isInter)
             tmp = slVectorsIntersec;
 
-        if (checkSide)
+        if (_checkSide)
         {
-            if (!ctmPlane.GetSide(point))
+            if (!ctmPlane.GetSide(_point))
             {
-                slv.color = Color.red;
+                slv.color = Color.blue;
             }
             else
             {
-                slv.color = Color.blue;
+                slv.color = Color.red;
             }
         }
         tmp.Add(slv);
@@ -100,9 +105,12 @@ public class SliceData
         Edge newEdge1 = new Edge(_edge.Points[0], _intersection);
         Edge newEdge2 = new Edge(_intersection, _edge.Points[1]);
 
-        AddEdge(_FaceID, newEdge1);
+        AddEdge(_FaceID, newEdge1, 0);
         AddEdge(_FaceID, newEdge2, 1);
+
+        intersections.Add(_intersection);
     }
+
     public void CleanUnusedDebugIntersections()
     {
         for (int i = slVectorsIntersec.Count - 1; i >= 0; i--)
@@ -129,7 +137,38 @@ public class SliceData
 
         }
     }
-    
+
+    public void DeleteUsedIntersections()
+    {
+        List<Vector3> tmpList = new List<Vector3>();
+
+        for (int i = intersections.Count - 1; i >= 0; i--)
+        {
+            bool removedCurrent = false;
+
+            for (int j = intersections.Count - 1; j >= 0; j--)
+            {
+                if (j == i) continue;
+                for (int k = j - 1; k >= 0; k--)
+                {
+                    if (k == i) continue;
+
+                    if (!SlicedMeshLibrary.PointBetweenOthersPoints(intersections[j], intersections[k], intersections[i]))
+                    {
+                        tmpList.Add(intersections[i]);
+                        removedCurrent = true;
+                        break;
+                    }
+                }
+                if (removedCurrent)
+                    break;
+            }
+        }
+
+        intersections = tmpList;
+    }
+
+
     #region DRAWFUNCTIONS
     public void drawOnGizmos()
     {
