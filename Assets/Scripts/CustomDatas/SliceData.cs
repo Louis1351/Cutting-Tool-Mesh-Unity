@@ -17,8 +17,6 @@ public class SliceData
         slVectorsIntersec,
         slVectorsDebug;
 
-    private List<Vector3> intersections;
-
     private Dictionary<int, Face> faces;
 
     private bool showDebugLines;
@@ -29,14 +27,12 @@ public class SliceData
     public List<DebugVector> SlVectorsIntersec { get => slVectorsIntersec; set => slVectorsIntersec = value; }
     public List<DebugVector> SlVectorsDebug { get => slVectorsDebug; set => slVectorsDebug = value; }
     public Dictionary<int, Face> Faces { get => faces; }
-    public List<Vector3> Intersections { get => intersections; }
     #endregion
 
     public SliceData()
     {
         slVectorsIntersec = new List<DebugVector>();
         slVectorsDebug = new List<DebugVector>();
-        intersections = new List<Vector3>();
 
         faces = new Dictionary<int, Face>();
         ctmPlane = new CustomPlane();
@@ -45,7 +41,6 @@ public class SliceData
     {
         slVectorsIntersec = new List<DebugVector>();
         slVectorsDebug = new List<DebugVector>();
-        intersections = new List<Vector3>();
 
         faces = new Dictionary<int, Face>();
         ctmPlane = new CustomPlane(a, b, c);
@@ -53,7 +48,6 @@ public class SliceData
     public void Clear()
     {
         faces.Clear();
-        intersections.Clear();
         slVectorsIntersec.Clear();
         slVectorsDebug.Clear();
     }
@@ -108,9 +102,6 @@ public class SliceData
 
         AddEdge(_FaceID, newEdge1, 0);
         AddEdge(_FaceID, newEdge2, 1);
-
-        if (!intersections.Contains(_intersection))
-            intersections.Add(_intersection);
     }
 
     public void CleanUnusedDebugIntersections()
