@@ -18,20 +18,20 @@ public class CustomMesh
     {
         InitMeshVertices();
     }
-    public CustomMesh(out GameObject newMesh, string name, Transform tr, Material mat)
+    public CustomMesh(out GameObject _newMesh, string _name, Transform _tr, Material _mat,bool _isKinematic = false)
     {
-        newMesh = new GameObject(name);
-        MeshRenderer meshRenderer = newMesh.AddComponent<MeshRenderer>();
-        MeshCollider meshCol = newMesh.AddComponent<MeshCollider>();
-        Rigidbody rb = newMesh.AddComponent<Rigidbody>();
-        MeshFilter meshFilter = newMesh.AddComponent<MeshFilter>();
+        _newMesh = new GameObject(_name);
+        MeshRenderer meshRenderer = _newMesh.AddComponent<MeshRenderer>();
+        MeshCollider meshCol = _newMesh.AddComponent<MeshCollider>();
+        Rigidbody rb = _newMesh.AddComponent<Rigidbody>();
+        MeshFilter meshFilter = _newMesh.AddComponent<MeshFilter>();
 
-        rb.isKinematic = true;
-        newMesh.transform.localPosition = tr.localPosition;
-        newMesh.transform.localRotation = tr.localRotation;
-        newMesh.transform.localScale = tr.localScale;
+        rb.isKinematic = _isKinematic;
+        _newMesh.transform.localPosition = _tr.localPosition;
+        _newMesh.transform.localRotation = _tr.localRotation;
+        _newMesh.transform.localScale = _tr.localScale;
 
-        meshRenderer.material = mat;
+        meshRenderer.material = _mat;
         meshCol.convex = true;
 
         InitMeshVertices();

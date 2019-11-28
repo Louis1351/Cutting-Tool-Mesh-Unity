@@ -41,27 +41,30 @@ public class CuttingTool : MonoBehaviour
             hasClicked = false;
             Vector3 sliceCenter = (lastMousePos + Input.mousePosition) / 2.0f;
 
-            RaycastHit hit, unusedHit;
+            RaycastHit hit0, hit1, hit2;
             Ray rayCenter = Camera.main.ScreenPointToRay(sliceCenter);
             Ray rayP1 = Camera.main.ScreenPointToRay(lastMousePos);
             Ray rayP2 = Camera.main.ScreenPointToRay(Input.mousePosition);
 
-            if (Physics.Raycast(rayCenter, out hit)
-                && !Physics.Raycast(rayP1, out unusedHit)
-                && !Physics.Raycast(rayP2, out unusedHit))
+            Physics.Raycast(rayP1, out hit1);
+            Physics.Raycast(rayP2, out hit2);
+
+            if (Physics.Raycast(rayCenter, out hit0)
+                && hit1.transform != hit0.transform
+                && hit2.transform != hit0.transform)
             {
                 data.Clear();
 
-                center = hit.point;
+                center = hit0.point;
                 data.CtmPlane.Set3Points(
                     Camera.main.ScreenToWorldPoint(new Vector3(lastMousePos.x, lastMousePos.y, 1.0f)),
                     Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 1.0f)),
                     Camera.main.ScreenToWorldPoint(new Vector3(lastMousePos.x, lastMousePos.y, 1.0f) + Camera.main.transform.forward));
 
-                MeshFilter mf = hit.transform.GetComponent<MeshFilter>();
-                MeshRenderer mr = hit.transform.GetComponent<MeshRenderer>();
+                MeshFilter mf = hit0.transform.GetComponent<MeshFilter>();
+                MeshRenderer mr = hit0.transform.GetComponent<MeshRenderer>();
 
-                SlicedMeshLibrary.GenerateMeshes(mf, mr, hit.transform, data);
+                SlicedMeshLibrary.GenerateMeshes(mf, mr, data);
             }
 
         }

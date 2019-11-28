@@ -4,16 +4,18 @@ using UnityEngine;
 
 public class SlicedMeshLibrary
 {
-    public static void GenerateMeshes(MeshFilter _oldMeshF, MeshRenderer _oldMeshR, Transform _tr, SliceData _dataPlane)
+    public static void GenerateMeshes(MeshFilter _oldMeshF, MeshRenderer _oldMeshR, SliceData _dataPlane, bool _showDebug = false)
     {
-        FindNewTriangles(_oldMeshF, ref _dataPlane);
-        GenerateLeftMesh(_oldMeshF, _oldMeshR, _tr, _dataPlane);
-        GenerateRightMesh(_oldMeshF, _oldMeshR, _tr, _dataPlane);
+        FindNewTriangles(_oldMeshF, ref _dataPlane, _showDebug);
+        GenerateLeftMesh(_oldMeshF, _oldMeshR, _dataPlane);
+        GenerateRightMesh(_oldMeshF, _oldMeshR, _dataPlane);
+
+        GameObject.Destroy(_oldMeshF.gameObject);
     }
-    public static void GenerateLeftMesh(MeshFilter _oldMeshF, MeshRenderer _oldMeshR, Transform _tr, SliceData _dataPlane)
+    public static void GenerateLeftMesh(MeshFilter _oldMeshF, MeshRenderer _oldMeshR, SliceData _dataPlane)
     {
         GameObject newMesh;
-        CustomMesh mesh = new CustomMesh(out newMesh, "left Mesh", _tr, _oldMeshR.material);
+        CustomMesh mesh = new CustomMesh(out newMesh, "left Mesh", _oldMeshF.transform, _oldMeshR.material);
 
         int vertexID = 0;
         for (int faceID = 0; faceID < _dataPlane.Faces.Count; faceID += 2)
@@ -23,10 +25,10 @@ public class SlicedMeshLibrary
 
             foreach (Edge e in _dataPlane.Faces[faceID].Edges)
             {
-               
+
                 foreach (Vector3 p in _dataPlane.Faces[faceID].GetDistinctsPoints())
                 {
-                    Vector3 vertexPos = _tr.InverseTransformPoint(p);
+                    Vector3 vertexPos = _oldMeshF.transform.InverseTransformPoint(p);
                     mesh.vertices.Add(vertexPos);
                     mesh.triangles.Add(vertexID);
                     vertexID++;
@@ -34,17 +36,17 @@ public class SlicedMeshLibrary
             }
         }
 
-        Debug.Log("nb vertices " + mesh.vertices.Count);
-        Debug.Log("nb triangles " + mesh.triangles.Count);
+        /*Debug.Log("nb vertices " + mesh.vertices.Count);
+        Debug.Log("nb triangles " + mesh.triangles.Count);*/
 
         mesh.Recalculate();
         mesh.AssignToMesh(newMesh.GetComponent<MeshFilter>());
         mesh.AssignToSharedMesh(newMesh.GetComponent<MeshCollider>());
     }
-    public static void GenerateRightMesh(MeshFilter _oldMeshF, MeshRenderer _oldMeshR, Transform _tr, SliceData _dataPlane)
+    public static void GenerateRightMesh(MeshFilter _oldMeshF, MeshRenderer _oldMeshR, SliceData _dataPlane)
     {
         GameObject newMesh;
-        CustomMesh mesh = new CustomMesh(out newMesh, "right Mesh", _tr, _oldMeshR.material);
+        CustomMesh mesh = new CustomMesh(out newMesh, "right Mesh", _oldMeshF.transform, _oldMeshR.material);
 
         int vertexID = 0;
         for (int faceID = 1; faceID < _dataPlane.Faces.Count; faceID += 2)
@@ -57,7 +59,7 @@ public class SlicedMeshLibrary
 
                 foreach (Vector3 p in _dataPlane.Faces[faceID].GetDistinctsPoints())
                 {
-                    Vector3 vertexPos = _tr.InverseTransformPoint(p);
+                    Vector3 vertexPos = _oldMeshF.transform.InverseTransformPoint(p);
                     mesh.vertices.Add(vertexPos);
                     mesh.triangles.Add(vertexID);
                     vertexID++;
@@ -65,8 +67,8 @@ public class SlicedMeshLibrary
             }
         }
 
-        Debug.Log("nb vertices " + mesh.vertices.Count);
-        Debug.Log("nb triangles " + mesh.triangles.Count);
+        /*Debug.Log("nb vertices " + mesh.vertices.Count);
+        Debug.Log("nb triangles " + mesh.triangles.Count);*/
 
         mesh.Recalculate();
         mesh.AssignToMesh(newMesh.GetComponent<MeshFilter>());
@@ -191,7 +193,7 @@ public class SlicedMeshLibrary
         return false;
     }
 
-    public static void FindNewTriangles(MeshFilter _mf, ref SliceData _data)
+    public static void FindNewTriangles(MeshFilter _mf, ref SliceData _data, bool _showDebug)
     {
         CustomPlane secondPlane = new CustomPlane();
         Vector3 pointOnSliceVec;
@@ -203,9 +205,13 @@ public class SlicedMeshLibrary
             Vector3 V1 = _mf.transform.TransformPoint(_mf.mesh.vertices[_mf.mesh.triangles[i]]);
             Vector3 V2 = _mf.transform.TransformPoint(_mf.mesh.vertices[_mf.mesh.triangles[i + 1]]);
             Vector3 V3 = _mf.transform.TransformPoint(_mf.mesh.vertices[_mf.mesh.triangles[i + 2]]);
-            _data.AddNewSlVectorDebug(V1, Vector3.zero, Color.magenta, false, true);
-            _data.AddNewSlVectorDebug(V2, Vector3.zero, Color.magenta, false, true);
-            _data.AddNewSlVectorDebug(V3, Vector3.zero, Color.magenta, false, true);
+
+            if (_showDebug)
+            {
+                _data.AddNewSlVectorDebug(V1, Vector3.zero, Color.magenta, false, true);
+                _data.AddNewSlVectorDebug(V2, Vector3.zero, Color.magenta, false, true);
+                _data.AddNewSlVectorDebug(V3, Vector3.zero, Color.magenta, false, true);
+            }
 
             secondPlane.Set3Points(V1, V2, V3);
 
@@ -223,8 +229,8 @@ public class SlicedMeshLibrary
             {
                 foreach (Edge e in edges)
                 {
-                    _data.AddEdge(FaceID, e);
-                }   
+                    _data.AddEdge(FaceID, new Edge(e.Points[0]));
+                }
                 continue;
             }
 
@@ -234,20 +240,24 @@ public class SlicedMeshLibrary
             {
                 if (IntersectionVectorToVector(out finalPoint, e.Points[0], e.Points[1], pointOnSliceVec, sliceDir))
                 {
-                    drawSlice = true;
-                    _data.AddNewSlVectorDebug(finalPoint, Vector3.zero, Color.magenta, true, false);
+                    if (_showDebug)
+                    {
+                        drawSlice = true;
+                        _data.AddNewSlVectorDebug(finalPoint, Vector3.zero, Color.magenta, true, false);
+                    }
                     _data.AddSeperateEdges(FaceID, e, finalPoint);
                 }
-                else _data.AddEdge(FaceID, e);
+                else _data.AddEdge(FaceID, new Edge(e.Points[0]));
             }
 
-            if (drawSlice)
+            if (drawSlice && _showDebug)
             {
                 _data.AddNewSlVectorDebug(pointOnSliceVec, sliceDir, Color.green);
             }
         }
 
-        _data.CleanUnusedDebugIntersections();
+        if (_showDebug)
+            _data.CleanUnusedDebugIntersections();
     }
 }
 
