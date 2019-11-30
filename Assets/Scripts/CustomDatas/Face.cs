@@ -27,4 +27,29 @@ public class Face
 
         return points;
     }
+
+    public void Remove(Vector3 _vertex)
+    {
+        foreach (Edge e in edges)
+        {
+            if (e.Points.Count == 2)
+            {
+                if (SlicedMeshLibrary.IsEqualTo(_vertex, e.Points[0], 0.001f))
+                {
+                    e.Points.RemoveAt(0);
+                }
+                else if (SlicedMeshLibrary.IsEqualTo(_vertex, e.Points[1], 0.001f))
+                {
+                    e.Points.RemoveAt(1);
+                }
+            }
+            else
+            {
+                if (SlicedMeshLibrary.IsEqualTo(_vertex, e.Points[0], 0.001f))
+                {
+                    e.Points.RemoveAt(0);
+                }
+            }
+        }
+    }
 }
