@@ -3,53 +3,60 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class Face
+public class Face /*: MeshData*/
 {
-    private List<Edge> edges;
+    private List<Triangle> triangles;
+    private int triangleID;
+    private int indice;
+    public List<Triangle> Triangles { get => triangles; set => triangles = value; }
+    public int TriangleID { get => triangleID; set => triangleID = value; }
 
-    public List<Edge> Edges { get => edges; set => edges = value; }
-
-    public Face()
+    public Dictionary<int, Vector3> Vertices;
+    public Face(int _indice = 0)
     {
-        edges = new List<Edge>();
+        triangles = new List<Triangle>();
+        Vertices = new Dictionary<int, Vector3>();
+        triangles.Add(new Triangle());
+        triangleID = 0;
+        indice = _indice;
     }
 
-    public List<Vector3> GetDistinctsPoints()
+    public void AddVertex(Vector3 _vertex)
     {
-        List<Vector3> points = null;
-        foreach (Edge e in edges)
+        if (!Vertices.ContainsValue(_vertex))
         {
-            if (points == null)
-                points = e.Points;
-            else points = points.Concat(e.Points).ToList();
+            Vertices.Add(indice++, _vertex);
         }
-        points = points.Distinct().ToList();
 
-        return points;
+        int indiceID = Vertices.FirstOrDefault(x => x.Value == _vertex).Key;
+
+       
+        if (triangleID >= 1)
+        {
+            triangles[triangleID].Indices.Add(triangles[triangleID - 1].Indices[2]);
+            triangles[triangleID].Indices.Add(indiceID);
+            triangles[triangleID].Indices.Add(triangles[triangleID - 1].Indices[0]);
+        }
+        else triangles[triangleID].Indices.Add(indiceID);
+
+        if (triangles[triangleID].Indices.Count % 3 == 0
+            && triangles[triangleID].Indices.Count != 0)
+        {
+            triangleID++;
+            triangles.Add(new Triangle());
+        }
     }
 
-    public void Remove(Vector3 _vertex)
+    public Triangle GetCurrentTriangle()
     {
-        foreach (Edge e in edges)
-        {
-            if (e.Points.Count == 2)
-            {
-                if (SlicedMeshLibrary.IsEqualTo(_vertex, e.Points[0], 0.001f))
-                {
-                    e.Points.RemoveAt(0);
-                }
-                else if (SlicedMeshLibrary.IsEqualTo(_vertex, e.Points[1], 0.001f))
-                {
-                    e.Points.RemoveAt(1);
-                }
-            }
-            else
-            {
-                if (SlicedMeshLibrary.IsEqualTo(_vertex, e.Points[0], 0.001f))
-                {
-                    e.Points.RemoveAt(0);
-                }
-            }
-        }
+        return triangles[triangleID];
+    }
+    public void SetStartingIndice(int _indice)
+    {
+        indice = _indice;
+    }
+    public int GetCurrentIndice()
+    {
+        return indice;
     }
 }

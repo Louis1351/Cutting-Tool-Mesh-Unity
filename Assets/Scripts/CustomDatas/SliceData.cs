@@ -58,7 +58,6 @@ public class SliceData
         slv.point = _point;
         slv.direction = _direction.normalized;
         slv.color = _color;
-        // slv.inTriangles = null;
 
         if (_isInter)
             tmp = slVectorsIntersec;
@@ -76,32 +75,52 @@ public class SliceData
         }
         tmp.Add(slv);
     }
+
     public void AddFace(int _FaceID, Face _face)
     {
-        if (!faces.ContainsValue(_face))
+        if (!faces.ContainsKey(_FaceID))
             faces.Add(_FaceID, _face);
     }
-    public void AddEdge(int _FaceID, Edge _edge, int idVertex = 0)
+    public void AddVertex(int _FaceID, Vector3 _vertex)
     {
-        if (!ctmPlane.GetSide(_edge.Points[idVertex]))
+        if (!ctmPlane.GetSide(_vertex))
         {
-            if (!faces[_FaceID].Edges.Contains(_edge))
-                faces[_FaceID].Edges.Add(_edge);
+            faces[_FaceID].AddVertex(_vertex);
         }
         else
         {
-            if (!faces[_FaceID + 1].Edges.Contains(_edge))
-                faces[_FaceID + 1].Edges.Add(_edge);
+            faces[_FaceID + 1].AddVertex(_vertex);
         }
-
     }
-    public void AddSeperateEdges(int _FaceID, Edge _edge, Vector3 _intersection)
+    public void AddVertex(int _FaceID, Vector3 _vertex1, Vector3 _vertex2)
     {
-        Edge newEdge1 = new Edge(_edge.Points[0], _intersection);
-        Edge newEdge2 = new Edge(_intersection, _edge.Points[1]);
+        if (!ctmPlane.GetSide(_vertex1))
+        {
+            faces[_FaceID].AddVertex(_vertex2);
+        }
+        else
+        {
+            faces[_FaceID + 1].AddVertex(_vertex2);
+        }
+    }
 
-        AddEdge(_FaceID, newEdge1, 0);
-        AddEdge(_FaceID, newEdge2, 1);
+    public void CleanUnusedTriangles(int _FaceID)
+    {
+        
+        foreach (Triangle tr in faces[_FaceID].Triangles.ToArray())
+        {
+            if (tr.Indices.Count == 0)
+            {
+                faces[_FaceID].Triangles.Remove(tr);
+            }
+        }
+        foreach (Triangle tr in faces[_FaceID + 1].Triangles.ToArray())
+        {
+            if (tr.Indices.Count == 0)
+            {
+                faces[_FaceID + 1].Triangles.Remove(tr);
+            }
+        }
     }
 
     public void CleanUnusedDebugIntersections()

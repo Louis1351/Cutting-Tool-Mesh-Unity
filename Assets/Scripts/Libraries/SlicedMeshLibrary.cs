@@ -14,30 +14,38 @@ public class SlicedMeshLibrary
     }
     public static void GeneratePartMesh(MeshFilter _oldMeshF, MeshRenderer _oldMeshR, SliceData _dataPlane, bool _isLeft)
     {
+        Debug.Log("/////////////StartGeneratePartMesh//////////////");
         GameObject newMesh;
         string name = (_isLeft ? "left Mesh" : "right Mesh");
-        CustomMesh mesh = new CustomMesh(out newMesh, name, _oldMeshF.transform, _oldMeshR.material, true);
+        CustomMesh mesh = new CustomMesh(out newMesh, name, _oldMeshF.transform, _oldMeshR.material, false);
 
-        int vertexID = 0;
+        int nbFace = 0;
+        // Debug.Log("faces " + _dataPlane.Faces.Count);
         for (int faceID = (_isLeft ? 1 : 0); faceID < _dataPlane.Faces.Count; faceID += 2)
         {
             if (!_dataPlane.Faces.ContainsKey(faceID))
                 continue;
 
-            foreach (Edge e in _dataPlane.Faces[faceID].Edges)
+            //Debug.Log("face " + faceID + " triangles " + _dataPlane.Faces[faceID].Triangles.Count);
+
+            foreach (KeyValuePair<int, Vector3> vertex in _dataPlane.Faces[faceID].Vertices)
             {
+                Vector3 vertexPos = _oldMeshF.transform.InverseTransformPoint(vertex.Value);
+                mesh.vertices.Add(vertexPos);
+            }
 
-                foreach (Vector3 p in _dataPlane.Faces[faceID].GetDistinctsPoints())
+            foreach (Triangle tr in _dataPlane.Faces[faceID].Triangles)
+            {
+                // Debug.Log("triangle indices " + tr.Indices.Count);
+                if (tr.Indices.Count != 3)
+                    continue;
+                foreach (int indice in tr.Indices)
                 {
-                    /*if (_dataPlane.Intersections.Contains(p))
-                        continue;*/
-
-                    Vector3 vertexPos = _oldMeshF.transform.InverseTransformPoint(p);
-                    mesh.vertices.Add(vertexPos);
-                    mesh.triangles.Add(vertexID);
-                    vertexID++;
+                    //Debug.Log("indice is " + indice);
+                    mesh.triangles.Add(indice);
                 }
             }
+
         }
 
         Debug.Log("nb vertices " + mesh.vertices.Count);
@@ -46,6 +54,7 @@ public class SlicedMeshLibrary
         mesh.Recalculate();
         mesh.AssignToMesh(newMesh.GetComponent<MeshFilter>());
         mesh.AssignToSharedMesh(newMesh.GetComponent<MeshCollider>());
+        Debug.Log("/////////////EndGeneratePartMesh//////////////");
     }
 
     ///<summary>
@@ -172,7 +181,10 @@ public class SlicedMeshLibrary
         Vector3 pointOnSliceVec;
         Vector3 sliceDir;
         Vector3 finalPoint;
-
+        Debug.Log("start vertices " + _mf.mesh.vertices.Length);
+        Debug.Log("start triangles " + _mf.mesh.triangles.Length);
+        int currentIndice1 = 0;
+        int currentIndice2 = 0;
         for (int i = 0, FaceID = 0; i < _mf.mesh.triangles.Length; i += 3, FaceID += 2)
         {
             Vector3 V1 = _mf.transform.TransformPoint(_mf.mesh.vertices[_mf.mesh.triangles[i]]);
@@ -188,8 +200,9 @@ public class SlicedMeshLibrary
 
             secondPlane.Set3Points(V1, V2, V3);
 
-            Face face1 = new Face();
-            Face face2 = new Face();
+            Face face1 = new Face(currentIndice1);
+            Face face2 = new Face(currentIndice2);
+
             _data.AddFace(FaceID, face1);
             _data.AddFace(FaceID + 1, face2);
 
@@ -202,35 +215,46 @@ public class SlicedMeshLibrary
             {
                 foreach (Edge e in edges)
                 {
-                    _data.AddEdge(FaceID, new Edge(e.Points[0]));
+                    _data.AddVertex(FaceID, e.Vertices[0]);
                 }
                 continue;
             }
+            int inter = 0;
 
-            bool findIntersection = false;
             foreach (Edge e in edges)
             {
-                if (IntersectionVectorToVector(out finalPoint, e.Points[0], e.Points[1], pointOnSliceVec, sliceDir))
+                if (IntersectionVectorToVector(out finalPoint, e.Vertices[0], e.Vertices[1], pointOnSliceVec, sliceDir))
                 {
                     if (_showDebug)
                     {
                         _data.AddNewSlVectorDebug(finalPoint, Vector3.zero, Color.magenta, true, false);
                     }
-                    _data.AddSeperateEdges(FaceID, e, finalPoint);
 
-                    findIntersection = true;
+                    _data.AddVertex(FaceID, e.Vertices[0]);
+                    _data.AddVertex(FaceID, e.Vertices[0], finalPoint);
+
+                    _data.AddVertex(FaceID, e.Vertices[1], finalPoint);
+                    //rustine
+                    if (inter > 1)
+                        _data.AddVertex(FaceID, e.Vertices[1]);
+
+                    inter++;
                 }
-                else _data.AddEdge(FaceID, new Edge(e.Points[0]));
+                else { _data.AddVertex(FaceID, e.Vertices[0]); }
             }
 
-            if (findIntersection && _showDebug)
+            if (inter > 0 && _showDebug)
             {
                 _data.AddNewSlVectorDebug(pointOnSliceVec, sliceDir, Color.green);
             }
+
+            currentIndice1 = face1.GetCurrentIndice();
+            currentIndice2 = face2.GetCurrentIndice();
+            _data.CleanUnusedTriangles(FaceID);
         }
 
-        if (_showDebug)
-            _data.CleanUnusedDebugIntersections();
+        // if (_showDebug)
+        //     _data.CleanUnusedDebugIntersections();
     }
 
     public static bool IsEqualTo(Vector3 _a, Vector3 _b, float _precision)
