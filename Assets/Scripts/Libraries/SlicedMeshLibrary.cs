@@ -177,6 +177,10 @@ public class SlicedMeshLibrary
 
     public static void FindNewTriangles(MeshFilter _mf, ref SliceData _data, bool _showDebug)
     {
+        List<Vector3> leftvertices = new List<Vector3>();
+        List<Vector3> rightvertices = new List<Vector3>();
+        Dictionary<Vector3, int> intersections = new Dictionary<Vector3, int>();
+
         CustomPlane secondPlane = new CustomPlane();
         Vector3 pointOnSliceVec;
         Vector3 sliceDir;
@@ -203,6 +207,9 @@ public class SlicedMeshLibrary
             Face face1 = new Face(currentIndice1);
             Face face2 = new Face(currentIndice2);
 
+            face1.debugFaceId = FaceID;
+            face2.debugFaceId = FaceID + 1;
+
             _data.AddFace(FaceID, face1);
             _data.AddFace(FaceID + 1, face2);
 
@@ -215,7 +222,9 @@ public class SlicedMeshLibrary
             {
                 foreach (Edge e in edges)
                 {
-                    _data.AddVertex(FaceID, e.Vertices[0]);
+                    if (!_data.CtmPlane.GetSide(e.Vertices[0]))
+                        _data.Faces[FaceID].AddVertex(e.Vertices[0]);
+                    else _data.Faces[FaceID + 1].AddVertex(e.Vertices[0]);
                 }
                 continue;
             }
@@ -223,6 +232,10 @@ public class SlicedMeshLibrary
 
             foreach (Edge e in edges)
             {
+                if (!_data.CtmPlane.GetSide(e.Vertices[0]))
+                    _data.Faces[FaceID].AddVertex(e.Vertices[0]);
+                else _data.Faces[FaceID + 1].AddVertex(e.Vertices[0]);
+
                 if (IntersectionVectorToVector(out finalPoint, e.Vertices[0], e.Vertices[1], pointOnSliceVec, sliceDir))
                 {
                     if (_showDebug)
@@ -230,27 +243,58 @@ public class SlicedMeshLibrary
                         _data.AddNewSlVectorDebug(finalPoint, Vector3.zero, Color.magenta, true, false);
                     }
 
-                    _data.AddVertex(FaceID, e.Vertices[0]);
-                    _data.AddVertex(FaceID, e.Vertices[0], finalPoint);
+                    if (!intersections.ContainsKey(finalPoint))
+                    {
+                        intersections.Add(finalPoint, i);
+                        inter++;
+                    }
 
-                    _data.AddVertex(FaceID, e.Vertices[1], finalPoint);
-                    //rustine
-                    if (inter > 1)
-                        _data.AddVertex(FaceID, e.Vertices[1]);
-
-                    inter++;
+                    _data.Faces[FaceID].AddVertex(finalPoint);
+                    _data.Faces[FaceID + 1].AddVertex(finalPoint);
                 }
-                else { _data.AddVertex(FaceID, e.Vertices[0]); }
+
+                currentIndice1 = face1.GetCurrentIndice();
+                currentIndice2 = face2.GetCurrentIndice();
+                intersections.Clear();
+                
+                   // _data.CleanUnusedTriangles(FaceID);
             }
+
 
             if (inter > 0 && _showDebug)
             {
                 _data.AddNewSlVectorDebug(pointOnSliceVec, sliceDir, Color.green);
             }
 
-            currentIndice1 = face1.GetCurrentIndice();
-            currentIndice2 = face2.GetCurrentIndice();
-            _data.CleanUnusedTriangles(FaceID);
+            /*if ((FaceID + 1) % 2 == 0)
+            {
+                Face face1 = new Face(currentIndice1);
+                Face face2 = new Face(currentIndice2);
+
+                face1.debugFaceId = FaceID - 1;
+                face2.debugFaceId = FaceID;
+
+                _data.AddFace(FaceID - 1, face1);
+                _data.AddFace(FaceID, face2);
+                
+                foreach (Vector3 vertex in rightvertices)
+                {
+                    _data.Faces[FaceID - 1].AddVertex(vertex);
+                }
+ 
+                foreach (Vector3 vertex in leftvertices)
+                {
+                    _data.Faces[FaceID].AddVertex(vertex);
+                }
+
+                currentIndice1 = face1.GetCurrentIndice();
+                currentIndice2 = face2.GetCurrentIndice();
+
+                _data.CleanUnusedTriangles(FaceID - 1);
+                intersections.Clear();
+                leftvertices.Clear();
+                rightvertices.Clear();
+            }*/
         }
 
         // if (_showDebug)

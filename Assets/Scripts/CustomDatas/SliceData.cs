@@ -81,37 +81,16 @@ public class SliceData
         if (!faces.ContainsKey(_FaceID))
             faces.Add(_FaceID, _face);
     }
-    public void AddVertex(int _FaceID, Vector3 _vertex)
-    {
-        if (!ctmPlane.GetSide(_vertex))
-        {
-            faces[_FaceID].AddVertex(_vertex);
-        }
-        else
-        {
-            faces[_FaceID + 1].AddVertex(_vertex);
-        }
-    }
-    public void AddVertex(int _FaceID, Vector3 _vertex1, Vector3 _vertex2)
-    {
-        if (!ctmPlane.GetSide(_vertex1))
-        {
-            faces[_FaceID].AddVertex(_vertex2);
-        }
-        else
-        {
-            faces[_FaceID + 1].AddVertex(_vertex2);
-        }
-    }
 
     public void CleanUnusedTriangles(int _FaceID)
     {
-        
+
         foreach (Triangle tr in faces[_FaceID].Triangles.ToArray())
         {
             if (tr.Indices.Count == 0)
             {
                 faces[_FaceID].Triangles.Remove(tr);
+                faces[_FaceID].TriangleID--;
             }
         }
         foreach (Triangle tr in faces[_FaceID + 1].Triangles.ToArray())
@@ -119,6 +98,7 @@ public class SliceData
             if (tr.Indices.Count == 0)
             {
                 faces[_FaceID + 1].Triangles.Remove(tr);
+                faces[_FaceID + 1].TriangleID--;
             }
         }
     }
