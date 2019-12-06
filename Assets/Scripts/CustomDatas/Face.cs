@@ -38,10 +38,9 @@ public class Face /*: MeshData*/
             //Debug.Log("Face num " + debugFaceId + " triangle num " + triangleID + " add indice " + indiceID + " indices count " + triangles[triangleID].Indices.Count + " vertex " + _vertex);
             //Debug.Log("Face num " + debugFaceId + " triangle num " + triangleID + " add indice " + triangles[triangleID - 1].Indices[0] + " indices count " + triangles[triangleID].Indices.Count + " vertex " + _vertex);
 
-            
+            triangles[triangleID].Indices.Add(triangles[triangleID - 1].Indices[2]);
             triangles[triangleID].Indices.Add(indiceID);
             triangles[triangleID].Indices.Add(triangles[triangleID - 1].Indices[0]);
-            triangles[triangleID].Indices.Add(triangles[triangleID - 1].Indices[2]);
         }
         else
         {

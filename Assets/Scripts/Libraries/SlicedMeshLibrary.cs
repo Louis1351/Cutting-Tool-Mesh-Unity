@@ -256,8 +256,7 @@ public class SlicedMeshLibrary
                 currentIndice1 = face1.GetCurrentIndice();
                 currentIndice2 = face2.GetCurrentIndice();
                 intersections.Clear();
-                
-                   // _data.CleanUnusedTriangles(FaceID);
+                //_data.CleanUnusedTriangles(FaceID);
             }
 
 
