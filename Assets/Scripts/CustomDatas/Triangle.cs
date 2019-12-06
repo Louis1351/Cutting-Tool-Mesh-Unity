@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Triangle 
 {
-    List<int> indices;
+    private List<int> indices;
     public List<int> Indices { get => indices; set => indices = value; }
     public Triangle()
     {

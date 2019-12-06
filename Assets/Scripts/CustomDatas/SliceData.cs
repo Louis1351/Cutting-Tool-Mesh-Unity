@@ -2,23 +2,20 @@
 using System.Linq;
 using UnityEngine;
 
+public struct DebugVector
+{
+    public Vector3 direction;
+    public Vector3 point;
+    public Color color;
+}
+
 public class SliceData
 {
-    public struct DebugVector
-    {
-        public Vector3 direction;
-        public Vector3 point;
-        public Color color;
-    }
-
     private CustomPlane ctmPlane;
-
     private List<DebugVector>
         slVectorsIntersec,
         slVectorsDebug;
-
     private Dictionary<int, Face> faces;
-
     private bool showDebugLines;
 
     #region assessors
@@ -37,13 +34,13 @@ public class SliceData
         faces = new Dictionary<int, Face>();
         ctmPlane = new CustomPlane();
     }
-    public SliceData(Vector3 a, Vector3 b, Vector3 c)
+    public SliceData(Vector3 _a, Vector3 _b, Vector3 _c)
     {
         slVectorsIntersec = new List<DebugVector>();
         slVectorsDebug = new List<DebugVector>();
 
         faces = new Dictionary<int, Face>();
-        ctmPlane = new CustomPlane(a, b, c);
+        ctmPlane = new CustomPlane(_a, _b, _c);
     }
     public void Clear()
     {

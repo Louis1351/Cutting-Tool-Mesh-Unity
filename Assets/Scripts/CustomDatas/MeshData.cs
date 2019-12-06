@@ -21,7 +21,7 @@ public class MeshData
     {
         foreach (Vector3 pt in vertices)
         {
-            if (SlicedMeshLibrary.IsEqualTo(pt, _vertex, 0.001f))
+            if (SlicedMeshLibrary.IsEqualTo(pt, _vertex, Mathf.Epsilon))
             {
                 return true;
             }

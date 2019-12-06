@@ -8,10 +8,15 @@ public class Face /*: MeshData*/
     private List<Triangle> triangles;
     private int triangleID;
     private int indice;
+   
+    public int debugFaceId;//to do remove
+    public Dictionary<int, Vector3> Vertices;
+
+    #region assessors
     public List<Triangle> Triangles { get => triangles; set => triangles = value; }
     public int TriangleID { get => triangleID; set => triangleID = value; }
-    public int debugFaceId;
-    public Dictionary<int, Vector3> Vertices;
+    #endregion
+
     public Face(int _indice = 0)
     {
         triangles = new List<Triangle>();
@@ -53,11 +58,7 @@ public class Face /*: MeshData*/
         {
             triangleID++;
             triangles.Add(new Triangle());
-
-
         }
-
-
     }
 
     public Triangle GetCurrentTriangle()

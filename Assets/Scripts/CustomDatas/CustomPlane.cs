@@ -6,7 +6,6 @@ public class CustomPlane
     private Vector3 a;
     private Vector3 b;
     private Vector3 c;
-
     private Vector4 unknowns;
 
     private float DebugLineDist;
