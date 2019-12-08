@@ -231,7 +231,7 @@ public class SlicedMeshLibrary
             {
                 if (!_data.CtmPlane.GetSide(e.Vertices[0]))
                     rightFace.AddVertex(e.Vertices[0]);
-                else _data.Faces[FaceID + 1].AddVertex(e.Vertices[0]);
+                else leftFace.AddVertex(e.Vertices[0]);
 
                 if (IntersectionVectorToVector(out finalPoint, e.Vertices[0], e.Vertices[1], pointOnSliceVec, sliceDir))
                 {
