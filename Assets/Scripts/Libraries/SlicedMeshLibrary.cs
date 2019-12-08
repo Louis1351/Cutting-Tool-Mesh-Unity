@@ -28,9 +28,9 @@ public class SlicedMeshLibrary
 
             //Debug.Log("face " + faceID + " triangles " + _dataPlane.Faces[faceID].Triangles.Count);
 
-            foreach (KeyValuePair<int, Vector3> vertex in _dataPlane.Faces[faceID].Vertices)
+            foreach (FaceVertex vertex in _dataPlane.Faces[faceID].Vertices)
             {
-                Vector3 vertexPos = _oldMeshF.transform.InverseTransformPoint(vertex.Value);
+                Vector3 vertexPos = _oldMeshF.transform.InverseTransformPoint(vertex.pos);
                 mesh.vertices.Add(vertexPos);
             }
 
@@ -252,10 +252,7 @@ public class SlicedMeshLibrary
 
                 currentIndice1 = rightFace.GetCurrentIndice();
                 currentIndice2 = leftFace.GetCurrentIndice();
-                /*rightFace.CleanUnusedTriangles();
-                leftFace.CleanUnusedTriangles();*/
-                intersections.Clear();
-                
+                intersections.Clear();    
             }
 
 
