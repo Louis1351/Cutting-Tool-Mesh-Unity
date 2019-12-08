@@ -204,14 +204,11 @@ public class SlicedMeshLibrary
 
             secondPlane.Set3Points(V1, V2, V3);
 
-            Face face1 = new Face(currentIndice1);
-            Face face2 = new Face(currentIndice2);
+            Face rightFace = new Face(currentIndice1);
+            Face leftFace = new Face(currentIndice2);
 
-            face1.debugFaceId = FaceID;
-            face2.debugFaceId = FaceID + 1;
-
-            _data.AddFace(FaceID, face1);
-            _data.AddFace(FaceID + 1, face2);
+            _data.AddFace(FaceID, rightFace);
+            _data.AddFace(FaceID + 1, leftFace);
 
             Edge[] edges = {
                         new Edge(V1, V2),
@@ -223,8 +220,8 @@ public class SlicedMeshLibrary
                 foreach (Edge e in edges)
                 {
                     if (!_data.CtmPlane.GetSide(e.Vertices[0]))
-                        _data.Faces[FaceID].AddVertex(e.Vertices[0]);
-                    else _data.Faces[FaceID + 1].AddVertex(e.Vertices[0]);
+                        rightFace.AddVertex(e.Vertices[0]);
+                    else leftFace.AddVertex(e.Vertices[0]);
                 }
                 continue;
             }
@@ -233,7 +230,7 @@ public class SlicedMeshLibrary
             foreach (Edge e in edges)
             {
                 if (!_data.CtmPlane.GetSide(e.Vertices[0]))
-                    _data.Faces[FaceID].AddVertex(e.Vertices[0]);
+                    rightFace.AddVertex(e.Vertices[0]);
                 else _data.Faces[FaceID + 1].AddVertex(e.Vertices[0]);
 
                 if (IntersectionVectorToVector(out finalPoint, e.Vertices[0], e.Vertices[1], pointOnSliceVec, sliceDir))
@@ -249,12 +246,12 @@ public class SlicedMeshLibrary
                         inter++;
                     }
 
-                    _data.Faces[FaceID].AddVertex(finalPoint);
-                    _data.Faces[FaceID + 1].AddVertex(finalPoint);
+                    rightFace.AddVertex(finalPoint);
+                    leftFace.AddVertex(finalPoint);
                 }
 
-                currentIndice1 = face1.GetCurrentIndice();
-                currentIndice2 = face2.GetCurrentIndice();
+                currentIndice1 = rightFace.GetCurrentIndice();
+                currentIndice2 = leftFace.GetCurrentIndice();
                 intersections.Clear();
                 //_data.CleanUnusedTriangles(FaceID);
             }

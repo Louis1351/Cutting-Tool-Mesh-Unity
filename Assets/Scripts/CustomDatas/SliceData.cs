@@ -77,6 +77,8 @@ public class SliceData
     {
         if (!faces.ContainsKey(_FaceID))
             faces.Add(_FaceID, _face);
+
+        _face.debugFaceId = _FaceID;
     }
 
     public void CleanUnusedTriangles(int _FaceID)
