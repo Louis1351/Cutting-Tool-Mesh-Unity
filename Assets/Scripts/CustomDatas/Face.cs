@@ -8,7 +8,7 @@ public class Face /*: MeshData*/
     private List<Triangle> triangles;
     private int triangleID;
     private int indice;
-   
+
     public int debugFaceId;//to do remove
     public Dictionary<int, Vector3> Vertices;
 
@@ -29,15 +29,17 @@ public class Face /*: MeshData*/
     public void AddVertex(Vector3 _vertex)
     {
         bool isNewVertex = false;
+        int indiceID = 0;
+
         if (!Vertices.ContainsValue(_vertex))
         {
             isNewVertex = true;
             Vertices.Add(indice++, _vertex);
         }
 
-        int indiceID = Vertices.FirstOrDefault(x => x.Value == _vertex).Key;
+        indiceID = Vertices.FirstOrDefault(x => x.Value == _vertex).Key;
 
-        if (triangleID >= 1 && isNewVertex && triangles[triangleID].Indices.Count == 0)
+        if (triangleID >= 1 && isNewVertex)
         {
             //Debug.Log("Face num " + debugFaceId + " triangle num " + triangleID + " add indice " + triangles[triangleID - 1].Indices[2] + " indices count " + triangles[triangleID].Indices.Count + " vertex " + _vertex);
             //Debug.Log("Face num " + debugFaceId + " triangle num " + triangleID + " add indice " + indiceID + " indices count " + triangles[triangleID].Indices.Count + " vertex " + _vertex);
@@ -50,6 +52,7 @@ public class Face /*: MeshData*/
         else
         {
             //Debug.Log("Face num " + debugFaceId + " triangle num " + triangleID + " add indice " + indiceID + " indices count " + triangles[triangleID].Indices.Count + " vertex " + _vertex);
+            
             triangles[triangleID].Indices.Add(indiceID);
         }
 
@@ -60,7 +63,17 @@ public class Face /*: MeshData*/
             triangles.Add(new Triangle());
         }
     }
-
+    public void CleanUnusedTriangles()
+    {
+        foreach (Triangle tr in triangles.ToArray())
+        {
+            if (tr.Indices.Count == 0)
+            {
+                triangles.Remove(tr);
+                triangleID--;
+            }
+        }
+    }
     public Triangle GetCurrentTriangle()
     {
         return triangles[triangleID];

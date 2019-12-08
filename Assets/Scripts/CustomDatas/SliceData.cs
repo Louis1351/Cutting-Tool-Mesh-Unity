@@ -81,27 +81,6 @@ public class SliceData
         _face.debugFaceId = _FaceID;
     }
 
-    public void CleanUnusedTriangles(int _FaceID)
-    {
-
-        foreach (Triangle tr in faces[_FaceID].Triangles.ToArray())
-        {
-            if (tr.Indices.Count == 0)
-            {
-                faces[_FaceID].Triangles.Remove(tr);
-                faces[_FaceID].TriangleID--;
-            }
-        }
-        foreach (Triangle tr in faces[_FaceID + 1].Triangles.ToArray())
-        {
-            if (tr.Indices.Count == 0)
-            {
-                faces[_FaceID + 1].Triangles.Remove(tr);
-                faces[_FaceID + 1].TriangleID--;
-            }
-        }
-    }
-
     public void CleanUnusedDebugIntersections()
     {
         for (int i = slVectorsIntersec.Count - 1; i >= 0; i--)
