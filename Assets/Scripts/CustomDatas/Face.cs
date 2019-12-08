@@ -5,23 +5,23 @@ using UnityEngine;
 
 public struct FaceVertex
 {
-    public int id;
+    public int ind;
     public Vector3 pos;
 
-    public FaceVertex(int _id, Vector3 _pos)
+    public FaceVertex(int _ind, Vector3 _pos)
     {
-        id = _id;
+        ind = _ind;
         pos = _pos;
     }
 }
-public class Face 
+public class Face
 {
     private List<Triangle> triangles;
     private int triangleID;
     private int indice;
 
     public int debugFaceId;//to do remove
- 
+
     private List<FaceVertex> vertices;
     #region assessors
     public List<Triangle> Triangles { get => triangles; set => triangles = value; }
@@ -49,10 +49,44 @@ public class Face
         return find;
     }
 
+    private void changeIndicesTriangles(int _indice)
+    {
+        foreach (Triangle tr in Triangles)
+        {
+            for (int i = 0; i < tr.Indices.Count; i++)
+            {
+                if (tr.Indices[i] >= _indice)
+                {
+                    tr.Indices[i]--;
+                }
+            }
+        }
+    }
     public void RemoveVertex(Vector3 _vertex)
     {
+        int id = 0;
+        foreach (FaceVertex vertex in vertices)
+        {
+            if (_vertex == vertex.pos)
+            {
+                vertices.RemoveAt(id);
+                break;
+            }
+            id++;
+        }
 
+        if (id == 0)
+            return;
+
+        for (int i = id; i < vertices.Count; i++)
+        {
+            vertices[i] = new FaceVertex((vertices[i].ind - 1), vertices[i].pos);
+        }
+
+        changeIndicesTriangles(id);
     }
+
+
 
     public void AddVertex(Vector3 _vertex)
     {
@@ -62,11 +96,10 @@ public class Face
         if (!Contain(_vertex))
         {
             isNewVertex = true;
-            //Vertices.Add(indice++, _vertex);
             vertices.Add(new FaceVertex(indice++, _vertex));
         }
 
-        indiceID = vertices.FirstOrDefault(x => x.pos == _vertex).id;
+        indiceID = vertices.FirstOrDefault(x => x.pos == _vertex).ind;
 
         if (triangleID >= 1 && isNewVertex)
         {
