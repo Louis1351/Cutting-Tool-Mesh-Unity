@@ -14,10 +14,12 @@ public class CustomMesh
     private string name;
     private Vector3 pivot;
 
+    ///<summary>Require to create a new mesh </summary>
     public CustomMesh()
     {
         InitMeshVertices();
     }
+    ///<summary>Create a new mesh / new collider thanks to the old transform </summary>
     public CustomMesh(out GameObject _newMesh, string _name, Transform _tr, Material _mat,bool _isKinematic = false)
     {
         _newMesh = new GameObject(_name);
@@ -36,6 +38,7 @@ public class CustomMesh
 
         InitMeshVertices();
     }
+    ///<summary>Initialize each data require for the new mesh</summary>
     private void InitMeshVertices()
     {
         mesh = new Mesh();
@@ -48,6 +51,7 @@ public class CustomMesh
         pivot = Vector3.one * 0.5f;
         mesh.name = name;
     }
+    ///<summary>Clear everything from the mesh</summary>
     public void Clear()
     {
         vertices.Clear();
@@ -63,10 +67,16 @@ public class CustomMesh
     {
         meshFilter.sharedMesh = mesh;
     }
+    /// <summary>
+    /// assign the new mesCollider
+    /// </summary>
     public void AssignToSharedMesh(MeshCollider meshCollider)
     {
         meshCollider.sharedMesh = mesh;
     }
+    /// <summary>
+    /// Compute Vertices, UVs, Colors and the new triangles
+    /// </summary>
     public void Recalculate()
     {
         mesh.SetVertices(vertices);

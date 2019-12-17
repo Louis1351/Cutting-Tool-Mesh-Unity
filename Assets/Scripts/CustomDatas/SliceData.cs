@@ -2,13 +2,14 @@
 using System.Linq;
 using UnityEngine;
 
+///<summary>Purpose of the debugVector, shows plane and intersections in the editor</summary>
 public struct DebugVector
 {
     public Vector3 direction;
     public Vector3 point;
     public Color color;
 }
-
+///<summary>Save data link for the future CustomMesh like the right/left faces </summary>
 public class SliceData
 {
     private CustomPlane ctmPlane;
@@ -25,7 +26,7 @@ public class SliceData
     public List<DebugVector> SlVectorsDebug { get => slVectorsDebug; set => slVectorsDebug = value; }
     public Dictionary<int, Face> Faces { get => faces; }
     #endregion
-
+    ///<summary>Initialize the cutting plane ans the faces list</summary>
     public SliceData()
     {
         slVectorsIntersec = new List<DebugVector>();
@@ -34,6 +35,9 @@ public class SliceData
         faces = new Dictionary<int, Face>();
         ctmPlane = new CustomPlane();
     }
+    ///<summary>Initialize the cutting plane ans the faces list<para/>
+    ///Parameters set the cutting plane
+    ///</summary>
     public SliceData(Vector3 _a, Vector3 _b, Vector3 _c)
     {
         slVectorsIntersec = new List<DebugVector>();
@@ -42,12 +46,19 @@ public class SliceData
         faces = new Dictionary<int, Face>();
         ctmPlane = new CustomPlane(_a, _b, _c);
     }
+    /// <summary>
+    /// Clear Faces/DebugVectors
+    /// </summary>
     public void Clear()
     {
         faces.Clear();
         slVectorsIntersec.Clear();
         slVectorsDebug.Clear();
     }
+    /// <summary>
+    /// Add new Sphere and a Line to draw <para/>
+    /// If checkSide is true so we differentiate the left and right side of the plane thanks to the sphere color
+    /// </summary>
     public void AddNewSlVectorDebug(Vector3 _point, Vector3 _direction, Color _color, bool _isInter = false, bool _checkSide = false)
     {
         List<DebugVector> tmp = slVectorsDebug;
