@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class SlicedMeshLibrary
 {
+    /// <summary>
+    /// Create two meshes with an old mesh and a sliceData <para/>
+    /// </summary>
     public static void GenerateMeshes(MeshFilter _oldMeshF, MeshRenderer _oldMeshR, SliceData _dataPlane, bool _showDebug = false)
     {
         FindNewTriangles(_oldMeshF, ref _dataPlane, _showDebug);
@@ -12,6 +15,9 @@ public class SlicedMeshLibrary
 
         GameObject.Destroy(_oldMeshF.gameObject);
     }
+    /// <summary>
+    /// Generate The left/right mesh side of the plane
+    /// </summary>
     public static void GeneratePartMesh(MeshFilter _oldMeshF, MeshRenderer _oldMeshR, SliceData _dataPlane, bool _isLeft)
     {
         Debug.Log("/////////////StartGeneratePartMesh//////////////");
@@ -20,13 +26,19 @@ public class SlicedMeshLibrary
         CustomMesh mesh = new CustomMesh(out newMesh, name, _oldMeshF.transform, _oldMeshR.material, false);
 
         int nbFace = 0;
+        //Left faces have odd id in the dictionnary 
+        //Right faces have even id in the dictionnary 
+
         // Debug.Log("faces " + _dataPlane.Faces.Count);
         for (int faceID = (_isLeft ? 1 : 0); faceID < _dataPlane.Faces.Count; faceID += 2)
         {
             if (!_dataPlane.Faces.ContainsKey(faceID))
                 continue;
 
+            //Starting to generate the custom mesh
+
             //Debug.Log("face " + faceID + " triangles " + _dataPlane.Faces[faceID].Triangles.Count);
+            //Debug.Log("face " + faceID + " vertices " + _dataPlane.Faces[faceID].Vertices.Count);
 
             foreach (FaceVertex vertex in _dataPlane.Faces[faceID].Vertices)
             {
@@ -36,7 +48,7 @@ public class SlicedMeshLibrary
 
             foreach (Triangle tr in _dataPlane.Faces[faceID].Triangles)
             {
-                // Debug.Log("triangle indices " + tr.Indices.Count);
+                //Debug.Log("triangle indices " + tr.Indices.Count);
                 if (tr.Indices.Count != 3)
                     continue;
                 foreach (int indice in tr.Indices)
@@ -163,6 +175,9 @@ public class SlicedMeshLibrary
         u*(vA.y*vB.x -vA.x*vB.y) = ""
         u = (vA.x*(pB.y - pA.y) + vA.y (pA.x - pB.x))/(vA.y*vB.x - vA.x*vB.y)*/
     }
+    /// <summary>
+    /// Return true if the point is between A and B
+    /// </summary>
     public static bool PointBetweenOthersPoints(Vector3 _A, Vector3 _B, Vector3 _point)
     {
         Vector3 v = _B - _A;
@@ -174,12 +189,13 @@ public class SlicedMeshLibrary
         }
         return false;
     }
-
+    /// <summary>
+    /// Fill the left faces and right faces in the Dictionnary
+    /// </summary>
     public static void FindNewTriangles(MeshFilter _mf, ref SliceData _data, bool _showDebug)
     {
         List<Vector3> leftvertices = new List<Vector3>();
         List<Vector3> rightvertices = new List<Vector3>();
-        Dictionary<Vector3, int> intersections = new Dictionary<Vector3, int>();
 
         CustomPlane secondPlane = new CustomPlane();
         Vector3 pointOnSliceVec;
@@ -189,11 +205,31 @@ public class SlicedMeshLibrary
         Debug.Log("start triangles " + _mf.mesh.triangles.Length);
         int currentIndice1 = 0;
         int currentIndice2 = 0;
+
+        bool hasRemovedInter = false;
+        Vector3 removedInter = Vector3.zero;
+        Vector3 lastInter = Vector3.zero;
+        Face lastRightFace = null;
+        Face lastLeftFace = null;
+        //Check each face of the mesh ( one face possesses minimum two triangles )
         for (int i = 0, FaceID = 0; i < _mf.mesh.triangles.Length; i += 3, FaceID += 2)
         {
             Vector3 V1 = _mf.transform.TransformPoint(_mf.mesh.vertices[_mf.mesh.triangles[i]]);
             Vector3 V2 = _mf.transform.TransformPoint(_mf.mesh.vertices[_mf.mesh.triangles[i + 1]]);
             Vector3 V3 = _mf.transform.TransformPoint(_mf.mesh.vertices[_mf.mesh.triangles[i + 2]]);
+
+            Vector3 V1Next = Vector3.zero;
+            Vector3 V2Next = Vector3.zero;
+            Vector3 V3Next = Vector3.zero;
+            bool hasNextTriangle = false;
+
+            if (i + 3 < _mf.mesh.triangles.Length)
+            {
+                V1Next = _mf.transform.TransformPoint(_mf.mesh.vertices[_mf.mesh.triangles[i + 3]]);
+                V2Next = _mf.transform.TransformPoint(_mf.mesh.vertices[_mf.mesh.triangles[i + 4]]);
+                V3Next = _mf.transform.TransformPoint(_mf.mesh.vertices[_mf.mesh.triangles[i + 5]]);
+                hasNextTriangle = true;
+            }
 
             if (_showDebug)
             {
@@ -203,7 +239,7 @@ public class SlicedMeshLibrary
             }
 
             secondPlane.Set3Points(V1, V2, V3);
-
+            //Initialize two Faces
             Face rightFace = new Face(currentIndice1);
             Face leftFace = new Face(currentIndice2);
 
@@ -215,13 +251,14 @@ public class SlicedMeshLibrary
                         new Edge(V2, V3),
                         new Edge(V3, V1) };
 
+            //if the customPlan doesn't cut the triangle, then in that case don't check intersections 
             if (!IntersectionPlanToPlan(out pointOnSliceVec, out sliceDir, _data.CtmPlane, secondPlane))
             {
                 foreach (Edge e in edges)
                 {
                     if (!_data.CtmPlane.GetSide(e.Vertices[0]))
-                        rightFace.AddVertex(e.Vertices[0]);
-                    else leftFace.AddVertex(e.Vertices[0]);
+                        rightFace.AddVertex(e.Vertices[0], lastRightFace);
+                    else leftFace.AddVertex(e.Vertices[0], lastLeftFace);
                 }
                 continue;
             }
@@ -230,70 +267,70 @@ public class SlicedMeshLibrary
             foreach (Edge e in edges)
             {
                 if (!_data.CtmPlane.GetSide(e.Vertices[0]))
-                    rightFace.AddVertex(e.Vertices[0]);
-                else leftFace.AddVertex(e.Vertices[0]);
+                    rightFace.AddVertex(e.Vertices[0], lastRightFace);
+                else leftFace.AddVertex(e.Vertices[0], lastLeftFace);
 
+                //Find the new Vertex which intersects with the triangle
                 if (IntersectionVectorToVector(out finalPoint, e.Vertices[0], e.Vertices[1], pointOnSliceVec, sliceDir))
                 {
                     if (_showDebug)
                     {
                         _data.AddNewSlVectorDebug(finalPoint, Vector3.zero, Color.magenta, true, false);
                     }
-
-                    if (!intersections.ContainsKey(finalPoint))
+                    //Check if the current vertex belongs to the current triangle and the next
+                    if (hasNextTriangle &&
+                         ((e.Vertices[0] == V1Next && e.Vertices[1] == V2Next)
+                         || (e.Vertices[0] == V2Next && e.Vertices[1] == V1Next)
+                         || (e.Vertices[0] == V2Next && e.Vertices[1] == V3Next)
+                         || (e.Vertices[0] == V3Next && e.Vertices[1] == V2Next)
+                         || (e.Vertices[0] == V1Next && e.Vertices[1] == V3Next)
+                         || (e.Vertices[0] == V3Next && e.Vertices[1] == V1Next)))
                     {
-                        intersections.Add(finalPoint, i);
-                        inter++;
+                        hasRemovedInter = true;
+                        removedInter = finalPoint;
                     }
+                    else
+                    {
+                        if (hasRemovedInter)
+                        {
 
-                    rightFace.AddVertex(finalPoint);
-                    leftFace.AddVertex(finalPoint);
+                            if (removedInter == finalPoint)
+                            {
+                                hasRemovedInter = false;
+                                rightFace.AddVertex(lastInter, lastRightFace);
+                                leftFace.AddVertex(lastInter, lastLeftFace);
+                            }
+                            else
+                            {
+                                rightFace.AddVertex(finalPoint, lastRightFace);
+                                leftFace.AddVertex(finalPoint, lastLeftFace);
+                            }
+                        }
+                        else
+                        {
+                            rightFace.AddVertex(finalPoint, lastRightFace);
+                            leftFace.AddVertex(finalPoint, lastLeftFace);
+                            lastInter = finalPoint;
+                        }
+                    }
+                    inter++;
                 }
 
                 currentIndice1 = rightFace.GetCurrentIndice();
                 currentIndice2 = leftFace.GetCurrentIndice();
-                intersections.Clear();    
             }
-
 
             if (inter > 0 && _showDebug)
             {
                 _data.AddNewSlVectorDebug(pointOnSliceVec, sliceDir, Color.green);
             }
 
-            /*if ((FaceID + 1) % 2 == 0)
-            {
-                Face face1 = new Face(currentIndice1);
-                Face face2 = new Face(currentIndice2);
-
-                face1.debugFaceId = FaceID - 1;
-                face2.debugFaceId = FaceID;
-
-                _data.AddFace(FaceID - 1, face1);
-                _data.AddFace(FaceID, face2);
-                
-                foreach (Vector3 vertex in rightvertices)
-                {
-                    _data.Faces[FaceID - 1].AddVertex(vertex);
-                }
- 
-                foreach (Vector3 vertex in leftvertices)
-                {
-                    _data.Faces[FaceID].AddVertex(vertex);
-                }
-
-                currentIndice1 = face1.GetCurrentIndice();
-                currentIndice2 = face2.GetCurrentIndice();
-
-                _data.CleanUnusedTriangles(FaceID - 1);
-                intersections.Clear();
-                leftvertices.Clear();
-                rightvertices.Clear();
-            }*/
+            lastRightFace = rightFace;
+            lastLeftFace = leftFace;
         }
 
-        // if (_showDebug)
-        //     _data.CleanUnusedDebugIntersections();
+        if (_showDebug)
+            _data.CleanUnusedDebugIntersections();
     }
 
     public static bool IsEqualTo(Vector3 _a, Vector3 _b, float _precision)

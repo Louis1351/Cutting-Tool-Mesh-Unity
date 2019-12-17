@@ -22,7 +22,7 @@ public class CustomPlane
     {
         DebugLineDist = 10.0f;
     }
-
+    ///<summary>Create a plane and precompute this equation </summary>
     public CustomPlane(Vector3 _a, Vector3 _b, Vector3 _c)
     {
 
@@ -35,6 +35,7 @@ public class CustomPlane
         ComputeUnknowns();
     }
 
+    ///<summary>Set a plane and recompute this equation </summary>
     public void Set3Points(Vector3 _a, Vector3 _b, Vector3 _c)
     {
         a = _a;
@@ -44,7 +45,7 @@ public class CustomPlane
         plane.Set3Points(a, b, c);
         ComputeUnknowns();
     }
-
+    ///<summary>Set the unknow values of the plane (a, b, c and d)</summary>
     public void ComputeUnknowns()
     {
         unknowns.x = plane.normal.x;
@@ -52,12 +53,12 @@ public class CustomPlane
         unknowns.z = plane.normal.z;
         unknowns.w = -(unknowns.x * a.x + unknowns.y * a.y + unknowns.z * a.z);
     }
-
+    ///<summary>Is a point on the left or right side of the plane</summary>
     public bool GetSide(Vector3 _point)
     {
         return plane.GetSide(_point);
     }
-
+    ///<summary>Draw plane only in the editor</summary>
     public void DrawPlane()
     {
         Gizmos.color = Color.magenta;

@@ -27,7 +27,8 @@ public class GenerateMesh : MonoBehaviour
         meshRd.material = material;
 
         meshFilter = gameObject.AddComponent<MeshFilter>();
-       
+
+        ///Example cube creation///
         /*customMesh.CreateCube(Scaling);
         customMesh.AssignToMesh(meshFilter);
         customMesh.AssignToSharedMesh(meshCol);*/

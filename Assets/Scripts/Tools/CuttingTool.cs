@@ -29,13 +29,17 @@ public class CuttingTool : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //Used only to show the intersection lines
         data.ShowDebugLines = showDebugLines;
+
+        //Get the last position of the mouse
         if (!hasClicked && Input.GetMouseButtonDown(lftBtn))
         {
             hasClicked = true;
             lastMousePos = Input.mousePosition;
         }
 
+        //Try to cut the mesh
         if (hasClicked && Input.GetMouseButtonUp(lftBtn))
         {
             hasClicked = false;
@@ -49,6 +53,7 @@ public class CuttingTool : MonoBehaviour
             Physics.Raycast(rayP1, out hit1);
             Physics.Raycast(rayP2, out hit2);
 
+            //Find if an object can be cut or not
             if (Physics.Raycast(rayCenter, out hit0)
                 && hit1.transform != hit0.transform
                 && hit2.transform != hit0.transform)
@@ -72,7 +77,7 @@ public class CuttingTool : MonoBehaviour
     }
 
     /// <summary>
-    /// DRAW EVERYTHING ///
+    /// DRAW EVERYTHING 
     /// </summary>
     void OnPostRender()
     {
