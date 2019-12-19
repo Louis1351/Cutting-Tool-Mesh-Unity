@@ -20,9 +20,14 @@ public class SlicedMeshLibrary
     /// </summary>
     public static void GeneratePartMesh(MeshFilter _oldMeshF, MeshRenderer _oldMeshR, SliceData _dataPlane, bool _isLeft)
     {
-        Debug.Log("/////////////StartGeneratePartMesh//////////////");
-        GameObject newMesh;
         string name = (_isLeft ? "left Mesh" : "right Mesh");
+
+        Debug.Log("/////////////StartGeneratePartMesh "+name+" //////////////");
+        Debug.Log("number of vertices " + _oldMeshF.mesh.vertices.Length);
+        Debug.Log("number of triangles " + _oldMeshF.mesh.triangles.Length);
+
+        GameObject newMesh;
+       
         CustomMesh mesh = new CustomMesh(out newMesh, name, _oldMeshF.transform, _oldMeshR.material, false);
 
         int nbFace = 0;
@@ -58,14 +63,14 @@ public class SlicedMeshLibrary
             }
 
         }
-
-        Debug.Log("nb vertices " + mesh.vertices.Count);
-        Debug.Log("nb triangles " + mesh.triangles.Count);
-
+       
         mesh.Recalculate();
         mesh.AssignToMesh(newMesh.GetComponent<MeshFilter>());
         mesh.AssignToSharedMesh(newMesh.GetComponent<MeshCollider>());
-        Debug.Log("/////////////EndGeneratePartMesh//////////////");
+
+        Debug.Log("/////////////EndGeneratePartMesh " + name + "//////////////");
+        Debug.Log("number of vertices " + mesh.vertices.Count);
+        Debug.Log("number of triangles " + mesh.triangles.Count);
     }
 
     ///<summary>
@@ -200,8 +205,7 @@ public class SlicedMeshLibrary
         Vector3 pointOnSliceVec;
         Vector3 sliceDir;
         Vector3 finalPoint;
-        Debug.Log("start vertices " + _mf.mesh.vertices.Length);
-        Debug.Log("start triangles " + _mf.mesh.triangles.Length);
+    
         int currentIndice1 = 0;
         int currentIndice2 = 0;
         //Check each face of the mesh ( one face possesses minimum two triangles )
